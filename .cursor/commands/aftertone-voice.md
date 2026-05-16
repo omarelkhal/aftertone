@@ -7,24 +7,24 @@ description: Pick an Aftertone voice preset, apply it, and restart the TTS daemo
 
 **Do not** plan, explain, or run shell before the user picks a voice.
 
-Your **first** tool call must be **AskQuestion** (unless the user already named a preset or display name, e.g. `/aftertone-voice F4`, `/aftertone-voice Confident`, `M2`).
+Your **first** tool call must be **AskQuestion** (unless the user already named a preset or person, e.g. `/aftertone-voice F4`, `/aftertone-voice Sara`, `James`).
 
 ## Picker (first tool call)
 
-One question, `allow_multiple: false`. Use these options (`id` = TOML preset, `label` = friendly name):
+One question, `allow_multiple: false`. Use these options (`id` = TOML preset, `label` = human name):
 
 | id | label |
 |----|-------|
-| F1 | Calm (F1) |
-| F2 | Cheerful (F2) |
-| F3 | Announcer (F3) |
-| F4 | Confident (F4) |
-| F5 | Soothing (F5) |
-| M1 | Upbeat (M1) |
-| M2 | Deep calm (M2) |
-| M3 | Authoritative (M3) |
-| M4 | Gentle (M4) |
-| M5 | Warm (M5) |
+| F1 | Elena (female) |
+| F2 | Mia (female) |
+| F3 | Claire (female) |
+| F4 | Sara (female) |
+| F5 | Lily (female) |
+| M1 | James (male) |
+| M2 | Marcus (male) |
+| M3 | David (male) |
+| M4 | Noah (male) |
+| M5 | Owen (male) |
 
 Prompt example: `Choose a voice (daemon restarts after apply).`
 
@@ -37,5 +37,7 @@ From **repository root** (`PRESET` = chosen **id**, e.g. `F4`, not the display n
 ```bash
 uv run --directory py python speak_summary_config.py set voice PRESET --restart --ensure
 ```
+
+You may also pass a first name (e.g. `Sara`) — the script resolves it to the preset id.
 
 Report stdout briefly. Do not hand-edit TOML.

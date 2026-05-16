@@ -14,7 +14,7 @@ Use **Agent** chat slash commands in [`../commands/`](../commands/) — do **not
 | `/aftertone-lang` | `lang` + sync [spoken-summary rule](../rules/spoken-summary.mdc) |
 | `/aftertone-speed` | `speed` |
 | `/aftertone-mode` | `mode` (`queue` / `interrupt`) |
-| `/aftertone-voice` | `voice_type` (friendly names like Confident → `F4`; **daemon restart**) |
+| `/aftertone-voice` | `voice_type` (human names like Sara (female) → `F4`; **daemon restart**) |
 | `/aftertone-status` | Read current values + daemon |
 
 `enabled`, `lang`, `speed`, and `mode` apply on the **next** hook run. **Voice** / **port** / **onnx_dir** / **use_gpu** need a **daemon restart** (the voice command does that for you).
@@ -100,7 +100,7 @@ Paths like `../assets/...` are **relative to `py/`** (because the daemon is star
 ### `voice_type`
 
 - **Meaning:** Short preset id for the voice JSON under `assets/voice_styles/`. Used **only when** `voice_style` is empty or whitespace.
-- **Type:** String, e.g. `M1`, `F2`. Friendly names (Upbeat, Confident, …) appear in `/aftertone-voice` — see `py/voice_presets.py`.
+- **Type:** String, e.g. `M1`, `F2`. Human names (Sara (female), James (male), …) appear in `/aftertone-voice` — see `py/voice_presets.py`.
 - If the value does not end with `.json`, **`.json` is appended** and resolved as `../assets/voice_styles/<name>.json` from `py/`.
 - **Restart?** **Yes** (voice loaded at daemon start).
 - **Discover presets:** After assets are installed:  

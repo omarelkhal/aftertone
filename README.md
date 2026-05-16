@@ -55,7 +55,7 @@ For **lang**, **speed**, **mode**, and **voice**, you get a **picker** first, th
 | `/aftertone-lang` | Pick language (syncs [spoken-summary rule](.cursor/rules/spoken-summary.mdc)) |
 | `/aftertone-speed` | Pick playback speed |
 | `/aftertone-mode` | Pick `queue` or `interrupt` |
-| `/aftertone-voice` | Pick voice by name (e.g. Confident, Upbeat) → restart daemon |
+| `/aftertone-voice` | Pick a voice (e.g. Sara (female), James (male)) → restart daemon |
 
 Command definitions: [`.cursor/commands/`](.cursor/commands/).
 

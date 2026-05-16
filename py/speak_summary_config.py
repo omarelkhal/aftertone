@@ -366,7 +366,7 @@ def main() -> int:
     sub.add_parser("langs", help="Print all supported lang codes (space-separated)")
     sub.add_parser(
         "voice-picker",
-        help="Print id|label lines for voice presets (Upbeat (M1), …)",
+        help="Print id|label lines for voice presets (James (male), …)",
     )
     sub.add_parser(
         "lang-picker",

@@ -159,14 +159,14 @@ def test_voice_picker_lines(capsys, tmp_path):
     (styles / "M1.json").write_text("{}", encoding="utf-8")
     assert cfg.cmd_voice_picker(tmp_path) == 0
     out = capsys.readouterr().out
-    assert "M1|Upbeat (M1)" in out
+    assert "M1|James (male)" in out
 
 
 def test_set_voice_accepts_display_name(tmp_path, monkeypatch):
     _write_toml(tmp_path, _sample_toml())
     monkeypatch.setattr(cfg, "_list_voice_presets", lambda _repo: ["M1", "F4"])
     monkeypatch.setattr(cfg, "_daemon_restart", lambda _repo: 0)
-    assert cfg.cmd_set_voice(tmp_path, "Confident", restart=False, ensure=False) == 0
+    assert cfg.cmd_set_voice(tmp_path, "Sara", restart=False, ensure=False) == 0
     data = cfg._load_cfg(tmp_path / ".cursor" / "hooks" / "speak_summary.toml")
     assert data["voice_type"] == "F4"
 
