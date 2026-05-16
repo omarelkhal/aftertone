@@ -1,12 +1,18 @@
 # Aftertone
 
 <p align="center">
-  <img src="img/aftertone-logo.png" alt="Aftertone logo" width="480">
+  <img src="img/aftertone-logo.png" alt="Aftertone — local text-to-speech for AI coding agents and Cursor hooks" width="480">
 </p>
 
 **Hear a short spoken line after your coding agent answers** — on-device **[Supertonic](https://github.com/supertone-inc/supertonic) ONNX** through a tiny **local HTTP daemon** (models stay loaded; hooks stay fast).
 
 Aftertone is **not Cursor-only**. Today it ships a **Cursor** `afterAgentResponse` integration; we want first-class paths for **Claude Code / Claude Desktop** and **OpenAI Codex** (CLI or IDE). If that excites you, read [CONTRIBUTING.md](CONTRIBUTING.md) and open a PR or design issue.
+
+## Discovery
+
+If you are searching for **local text-to-speech**, **on-device** assistants, **AI coding agent** tooling, **agentic coding** workflows, or **Cursor IDE** **hooks** that do not send your thread to a cloud API — Aftertone is a small **open source** **developer tool**: **ONNX Runtime** + **Supertonic** for optional **voice** feedback after the model answers, **offline**-friendly and **privacy**-minded.
+
+**Related GitHub topics:** [ai-agents](https://github.com/topics/ai-agents) · [coding-agent](https://github.com/topics/coding-agent) · [cursor](https://github.com/topics/cursor) · [text-to-speech](https://github.com/topics/text-to-speech) · [onnx](https://github.com/topics/onnx) · [local-first](https://github.com/topics/local-first) · [developer-tools](https://github.com/topics/developer-tools) · [open-source](https://github.com/topics/open-source)
 
 ## Features (today)
 
@@ -51,6 +57,14 @@ Bring `.cursor/` + `py/` (or symlink). Keep `speak_summary.toml` paths consisten
 | `.cursor/rules/spoken-summary.mdc` | When/how to emit `<spoken_summary>`; **write for speech** (expand abbreviations, no URLs in tag) |
 
 Disable speech: `enabled = false` in `speak_summary.toml`.
+
+## Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** and the **[Code of Conduct](CODE_OF_CONDUCT.md)**. **Issues:** [open one here](https://github.com/omarelkhal/aftertone/issues) — use a template (**Bug report**, **Feature or idea**, **Adapter research**). Starter ideas: [.github/STARTER_ISSUES.md](.github/STARTER_ISSUES.md).
+
+## Website
+
+**[aftertone on GitHub Pages](https://omarelkhal.github.io/aftertone/)** — static landing built from the [`docs/`](docs/) folder. Enable in the **repository** (not your profile): **aftertone → Settings → Pages** → source **Deploy from a branch**, branch **`main`**, folder **`/docs`**. (Profile **Settings → Pages** only shows *verified domains* — that’s a different screen.)
 
 ## License
 

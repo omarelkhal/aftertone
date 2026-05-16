@@ -2,6 +2,11 @@
 
 Thanks for helping make **local, private “hear the gist”** work across more than one tool.
 
+## Community
+
+- This project follows the **[Code of Conduct](CODE_OF_CONDUCT.md)**. By participating, you agree to uphold it.
+- **Issues:** use [GitHub Issues](https://github.com/omarelkhal/aftertone/issues) and pick a template (**Bug report**, **Feature or idea**, **Adapter research**) so we can triage quickly.
+
 ## What we’re building
 
 | Area | Status | Help wanted |
@@ -34,3 +39,7 @@ bash py/test_speak_summary_pipeline.sh   # needs ./assets/onnx + audio
 ## Questions
 
 Open a **Discussion** or **Issue** with the tool you’re targeting (Claude / Codex / other) and a link to any public hook or event API you’ve found — maintainers will triage.
+
+## Starter work
+
+Look for labels **`good first issue`** and **`help wanted`**. Suggested titles and bodies (if you want to open a fresh issue yourself) live in **[.github/STARTER_ISSUES.md](.github/STARTER_ISSUES.md)**.

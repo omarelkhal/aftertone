@@ -3,9 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Aftertone — local text-to-speech after your coding agent replies. Cursor hooks, Supertonic ONNX, no cloud." />
+  <meta name="description" content="Aftertone: local text-to-speech after your AI coding agent replies. Cursor hooks, on-device Supertonic ONNX, ONNX Runtime, offline-friendly, privacy-preserving developer tools — open source." />
+  <meta name="keywords" content="Aftertone, text-to-speech, TTS, AI coding agents, coding agent, agentic coding, Cursor IDE, Cursor hooks, local-first, offline, privacy, ONNX, ONNX Runtime, on-device ML, developer tools, devtools, Supertonic, voice feedback, open source, Python" />
+  <link rel="canonical" href="https://omarelkhal.github.io/aftertone/" />
   <meta name="theme-color" content="#c4783a" />
-  <title>Aftertone — hear a short line after your agent answers</title>
+  <title>Aftertone — local TTS after AI coding agents reply | Cursor hooks &amp; ONNX</title>
+  <meta property="og:title" content="Aftertone — hear your coding agent after it answers" />
+  <meta property="og:description" content="Local-first text-to-speech for AI coding agents. Cursor afterAgentResponse hooks, Supertonic ONNX, no cloud TTS. Open source." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://omarelkhal.github.io/aftertone/" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/omarelkhal/aftertone/main/img/aftertone-logo.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Aftertone — local TTS for coding agents" />
+  <meta name="twitter:description" content="Voice feedback after your agent replies. Cursor hooks, ONNX on-device, privacy-friendly." />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aftertone","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows","description":"Optional local text-to-speech after AI coding agents finish a reply. Integrates with Cursor via hooks; uses Supertonic ONNX and ONNX Runtime for on-device synthesis.","url":"https://omarelkhal.github.io/aftertone/","codeRepository":"https://github.com/omarelkhal/aftertone","license":"https://github.com/omarelkhal/aftertone/blob/main/LICENSE","isAccessibleForFree":true,"keywords":"text-to-speech, AI agents, Cursor, ONNX, local-first, privacy, developer tools, open source","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+  </script>
   <style>
     :root {
       --bg: #faf7f2;
@@ -128,6 +141,32 @@
       border-radius: 6px;
       margin-bottom: 0.5rem;
     }
+    .prose-muted {
+      color: var(--muted);
+      max-width: 44rem;
+      margin: 0 auto;
+      font-size: 0.98rem;
+    }
+    .topic-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .topic-tags a {
+      font-size: 0.82rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      text-decoration: none;
+      color: var(--accent-dim);
+    }
+    .topic-tags a:hover {
+      border-color: var(--accent);
+      color: var(--fg);
+    }
     footer {
       border-top: 1px solid var(--border);
       padding: 1.5rem 0 2rem;
@@ -163,6 +202,19 @@
     <p class="lead">
       On-device <strong>Supertonic</strong> ONNX through a tiny <strong>local HTTP daemon</strong> — models stay loaded, hooks stay fast, audio stays on your machine.
     </p>
+    <p class="prose-muted" style="margin-top: -0.25rem;">
+      Built for <strong>AI coding agents</strong> and <strong>agentic coding</strong> workflows: <strong>Cursor</strong> hooks today, with a roadmap toward Claude Code, Codex, and other assistants. <strong>Local-first</strong>, offline-friendly <strong>text-to-speech</strong> on <strong>ONNX Runtime</strong> — a small developer utility for privacy-minded voice feedback without shipping your thread to a cloud TTS API.
+    </p>
+    <nav class="topic-tags" aria-label="Related GitHub topics">
+      <a href="https://github.com/topics/ai-agents">ai-agents</a>
+      <a href="https://github.com/topics/coding-agent">coding-agent</a>
+      <a href="https://github.com/topics/cursor">cursor</a>
+      <a href="https://github.com/topics/text-to-speech">text-to-speech</a>
+      <a href="https://github.com/topics/onnx">onnx</a>
+      <a href="https://github.com/topics/local-first">local-first</a>
+      <a href="https://github.com/topics/developer-tools">developer-tools</a>
+      <a href="https://github.com/topics/open-source">open-source</a>
+    </nav>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://github.com/omarelkhal/aftertone">View on GitHub</a>
       <a class="btn btn-ghost" href="https://github.com/omarelkhal/aftertone/blob/main/README.md#quick-start">Quick start</a>
