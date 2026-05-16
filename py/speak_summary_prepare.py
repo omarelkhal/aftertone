@@ -28,6 +28,8 @@ import sys
 from datetime import datetime, time as dtime
 from pathlib import Path
 
+from expression_tags import apply_expression
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:
@@ -106,16 +108,35 @@ def _assistant_text_blocks(lines: list[str]) -> str:
     return "\n".join(texts)
 
 
-def _extract_spoken_summary(raw: str) -> str | None:
-    m = re.search(
-        r"<spoken_summary>\s*(.*?)\s*</spoken_summary>",
-        raw,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
+_SPOKEN_SUMMARY_BLOCK = re.compile(
+    r"<spoken_summary(\s[^>]*)?>\s*(.*?)\s*</spoken_summary>",
+    flags=re.DOTALL | re.IGNORECASE,
+)
+_SPOKEN_STATE_ATTR = re.compile(
+    r"""\bstate\s*=\s*["']?([a-z_]+)["']?""",
+    flags=re.IGNORECASE,
+)
+
+
+def _parse_spoken_summary(raw: str) -> tuple[str | None, str | None]:
+    """Return (inner body, optional flow state from opening tag)."""
+    m = _SPOKEN_SUMMARY_BLOCK.search(raw)
     if not m:
-        return None
-    inner = m.group(1).strip()
-    return inner if inner else None
+        return None, None
+    attrs, inner = m.group(1) or "", (m.group(2) or "").strip()
+    state: str | None = None
+    if attrs:
+        sm = _SPOKEN_STATE_ATTR.search(attrs)
+        if sm:
+            state = sm.group(1).lower()
+    if not inner:
+        return None, state
+    return inner, state
+
+
+def _extract_spoken_summary(raw: str) -> str | None:
+    body, _state = _parse_spoken_summary(raw)
+    return body
 
 
 def _without_spoken_block(raw: str) -> str:
@@ -139,7 +160,8 @@ def _strip_markdownish(s: str) -> str:
     # Markdown links before bare URLs so `http://...)` is not stripped from `[t](url)`.
     s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
     s = re.sub(r"https?://\S+", " ", s)
-    s = re.sub(r"[#*_~>`]+", " ", s)
+    # Do not strip `>` — it breaks Supertonic expression tags like <sigh>.
+    s = re.sub(r"[#*_~`]+", " ", s)
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
@@ -403,8 +425,8 @@ def main() -> None:
             print("{}")
             return
 
-    spoken = _extract_spoken_summary(raw_text)
-    if _cfg_bool(cfg, "only_speak_spoken_summary", False) and not spoken:
+    spoken, flow_state = _parse_spoken_summary(raw_text)
+    if _cfg_bool(cfg, "only_speak_spoken_summary", True) and not spoken:
         print("{}")
         return
 
@@ -415,6 +437,11 @@ def main() -> None:
 
     if spoken:
         text = _spoken_tag_to_speakable(spoken, _effective_tag_cap(cfg, max_chars))
+        text = apply_expression(
+            text,
+            flow_state,
+            cfg.get("expression_mode", "off"),
+        )
     else:
         text = _heuristic_spoken(base, hcap, eff_sentences)
         if len(text) < min_chars:
@@ -433,8 +460,8 @@ def main() -> None:
         "text": text,
         "generation_id": hook.get("generation_id"),
         "conversation_id": hook.get("conversation_id"),
-        "totalStep": int(cfg.get("total_step", 4)),
-        "speed": float(cfg.get("speed", 1.05)),
+        "totalStep": int(cfg.get("total_step", 8)),
+        "speed": float(cfg.get("speed", 1.0)),
         "lang": str(cfg.get("lang", "en")),
         "mode": str(cfg.get("mode", "queue")).lower(),
     }

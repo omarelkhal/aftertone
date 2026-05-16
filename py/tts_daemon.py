@@ -211,8 +211,8 @@ def make_handler(worker: TTSWorker, port: int):
             if not text:
                 self._json(400, {"error": "missing_text"})
                 return
-            total_step = int(body.get("totalStep", body.get("total_step", 4)))
-            speed = float(body.get("speed", 1.05))
+            total_step = int(body.get("totalStep", body.get("total_step", 8)))
+            speed = float(body.get("speed", 1.0))
             raw_lang = body.get("lang") or body.get("language")
             job_lang = (
                 str(raw_lang).strip()

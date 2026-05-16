@@ -10,7 +10,44 @@ import onnxruntime as ort
 
 import re
 
-AVAILABLE_LANGS = ["en", "ko", "ja", "ar", "bg", "cs", "da", "de", "el", "es", "et", "fi", "fr", "hi", "hr", "hu", "id", "it", "lt", "lv", "nl", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi"]
+AVAILABLE_LANGS = [
+    "en",
+    "ko",
+    "ja",
+    "ar",
+    "bg",
+    "cs",
+    "da",
+    "de",
+    "el",
+    "es",
+    "et",
+    "fi",
+    "fr",
+    "hi",
+    "hr",
+    "hu",
+    "id",
+    "it",
+    "lt",
+    "lv",
+    "nl",
+    "pl",
+    "pt",
+    "ro",
+    "ru",
+    "sk",
+    "sl",
+    "sv",
+    "tr",
+    "uk",
+    "vi",
+    "na",
+]
+
+# Supertonic 3 inline expression tags, e.g. <sigh>, <laugh> (see HF Supertone/supertonic-3).
+_EXPRESSION_TAG_ONLY = re.compile(r"^\s*<([a-z][a-z0-9_]*)>\s*$", re.IGNORECASE)
+_EXPRESSION_TAG_SUFFIX = re.compile(r"<([a-z][a-z0-9_]*)>\s*$", re.IGNORECASE)
 
 
 class UnicodeProcessor:
@@ -95,9 +132,16 @@ class UnicodeProcessor:
         # Remove extra spaces
         text = re.sub(r"\s+", " ", text).strip()
 
-        # If text doesn't end with punctuation, quotes, or closing brackets, add a period
+        # If text doesn't end with punctuation, quotes, or closing brackets, add a period.
+        # Do not append after a bare expression tag (<sigh>) or after a trailing tag
+        # (<laugh>) — a trailing "." breaks Supertonic tag recognition (<laugh>.).
         if not re.search(r"[.!?;:,'\"')\]}…。」』】〉》›»]$", text):
-            text += "."
+            if _EXPRESSION_TAG_ONLY.match(text):
+                pass
+            elif _EXPRESSION_TAG_SUFFIX.search(text):
+                pass
+            else:
+                text += "."
 
         if lang not in AVAILABLE_LANGS:
             raise ValueError(f"Invalid language: {lang}")

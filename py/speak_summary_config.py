@@ -10,6 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from expression_tags import EXPRESSION_MODES, normalize_mode
 from helper import AVAILABLE_LANGS
 from voice_presets import (
     DEFAULT_VOICE_ORDER,
@@ -149,6 +150,7 @@ def cmd_status(repo: Path) -> int:
     print(f"lang: {lang}")
     print(f"speed: {speed}")
     print(f"mode: {mode}")
+    print(f"expression_mode: {normalize_mode(cfg.get('expression_mode', 'off'))}")
     print(f"voice_type: {vt} ({voice_display_name(vt)})")
     print(f"voice_style: {vs or '(empty, uses voice_type)'}")
     print("hook_keys_no_restart: lang, speed, mode, enabled, heuristics, quiet_hours")
@@ -334,6 +336,38 @@ def cmd_speed_picker() -> int:
     return 0
 
 
+_EXPRESSION_PICKER: tuple[tuple[str, str], ...] = (
+    ("off", "Off — plain speech only"),
+    ("subtle", "Subtle — sigh on blocked (recommended)"),
+    ("expressive", "Expressive — sigh and breath on more states"),
+    ("passthrough", "Passthrough — keep one inline tag you write"),
+)
+
+
+def cmd_expression_picker() -> int:
+    for value, label in _EXPRESSION_PICKER:
+        print(f"{value}|{label}")
+    return 0
+
+
+def cmd_set_expression(repo: Path, value: str) -> int:
+    mode = value.strip().lower()
+    if mode not in EXPRESSION_MODES:
+        allowed = ", ".join(sorted(EXPRESSION_MODES))
+        print(
+            f"error: expression_mode must be one of: {allowed}, got {value!r}",
+            file=sys.stderr,
+        )
+        return 1
+    toml_path = _toml_path(repo)
+    text = toml_path.read_text(encoding="utf-8")
+    toml_path.write_text(
+        _replace_key(text, "expression_mode", f'"{mode}"'), encoding="utf-8"
+    )
+    print(f"expression_mode={mode}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Configure speak_summary.toml (lang, speed, mode, voice)."
@@ -370,6 +404,10 @@ def main() -> int:
         "speed-picker",
         help="Print id|label lines for common speed values",
     )
+    sub.add_parser(
+        "expression-picker",
+        help="Print id|label lines for expression_mode (for interactive pickers)",
+    )
 
     p_set = sub.add_parser("set", help="Update one setting")
     set_sub = p_set.add_subparsers(dest="setting", required=True)
@@ -382,6 +420,12 @@ def main() -> int:
 
     p_mode = set_sub.add_parser("mode", help="Set queue or interrupt")
     p_mode.add_argument("value", choices=sorted(_MODES))
+
+    p_expr = set_sub.add_parser(
+        "expression",
+        help="Set expression_mode (off, subtle, expressive, passthrough)",
+    )
+    p_expr.add_argument("value", help="Expression mode name")
 
     p_voice = set_sub.add_parser("voice", help="Set voice_type or voice_style path")
     p_voice.add_argument("value", help="Preset (M1, F2, …) or path to .json")
@@ -405,6 +449,7 @@ def main() -> int:
         "langs",
         "lang-picker",
         "speed-picker",
+        "expression-picker",
     ) and not toml_path.is_file():
         print(f"error: missing {toml_path}", file=sys.stderr)
         return 1
@@ -421,12 +466,16 @@ def main() -> int:
         return cmd_lang_picker()
     if args.command == "speed-picker":
         return cmd_speed_picker()
+    if args.command == "expression-picker":
+        return cmd_expression_picker()
     if args.setting == "lang":
         return cmd_set_lang(repo, args.code)
     if args.setting == "speed":
         return cmd_set_speed(repo, args.value)
     if args.setting == "mode":
         return cmd_set_mode(repo, args.value)
+    if args.setting == "expression":
+        return cmd_set_expression(repo, args.value)
     if args.setting == "voice":
         return cmd_set_voice(
             repo, args.value, restart=args.restart, ensure=args.ensure

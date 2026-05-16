@@ -12,6 +12,7 @@ from speak_summary_prepare import (
     _code_fence_fraction,
     _demote_code_fences,
     _extract_spoken_summary,
+    _parse_spoken_summary,
     _heuristic_spoken,
     _in_quiet_hours,
     _is_low_substance_sentence,
@@ -76,6 +77,12 @@ class TestExtractSpokenSummary:
     def test_found(self):
         raw = "before <spoken_summary>hello world</spoken_summary> after"
         assert _extract_spoken_summary(raw) == "hello world"
+
+    def test_state_attribute(self):
+        raw = '<spoken_summary state="blocked">Daemon is down.</spoken_summary>'
+        body, state = _parse_spoken_summary(raw)
+        assert body == "Daemon is down."
+        assert state == "blocked"
 
     def test_multiline(self):
         raw = "<spoken_summary>\n  line one\n  line two\n</spoken_summary>"

@@ -35,9 +35,9 @@ voice_style = ""
 # assistant reply is already in the same language. See only_speak_spoken_summary.
 lang = "en"
 # Playback speed: 1.0 is baseline; higher speaks faster (same meaning as CLI examples).
-speed = 1.05
-# ONNX denoising steps (same as other Supertonic examples).
-total_step = 4
+speed = 1.0
+# ONNX denoising steps (quality vs CPU). Upstream examples often use 8; 4 is faster but rougher.
+total_step = 8
 
 # Empty = always speak. Set e.g. "22:00-08:00" for overnight quiet (local clock).
 quiet_hours = ""
@@ -61,6 +61,9 @@ heuristic_code_fence_fraction = 0.35
 heuristic_max_sentences_code_heavy = 1
 
 # If true, never use sentence / excerpt fallbacks: only <spoken_summary>…</spoken_summary>
-# is spoken. Use with non-English lang so TTS never reads English (or other mismatch)
-# from heuristics. Default false keeps backward-compatible behavior.
-only_speak_spoken_summary = false
+# is spoken (clearer TTS than trimmed assistant prose). Use with non-English lang too.
+only_speak_spoken_summary = true
+
+# Supertonic 3 inline expression tags (state= on spoken_summary): off | subtle | expressive | passthrough
+# Repo default off — agents use per-sentence !! ?? ?! !? in the tag (see spoken-summary rule). No daemon restart.
+expression_mode = "off"

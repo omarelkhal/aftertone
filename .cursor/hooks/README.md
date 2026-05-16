@@ -28,6 +28,21 @@ Turning TTS off does not stop the daemon; use **`tts_daemon_ctl.py stop`** below
 
 ---
 
+## Spoken summary intent (flow briefing)
+
+Aftertone is meant for **vibe coding**: you stay in flow while the agent works, and a short spoken line tells you **what changed, why it matters, and whether you need to steer** — without reading the whole reply.
+
+| Source | What you hear |
+|--------|----------------|
+| **`<spoken_summary>…</spoken_summary>`** (written by the agent) | A deliberate **flow briefing**: state, significance, optional next move. Best quality and tone. |
+| **Heuristic fallback** (first sentences of the reply) | Trimmed assistant prose. Can sound like a random excerpt, not a briefing. Disabled when **`only_speak_spoken_summary = true`** (default in this repo). |
+
+**Agents:** follow [`.cursor/rules/spoken-summary.mdc`](../rules/spoken-summary.mdc) — hybrid pair-programmer voice, no file paths in the tag, next step only when it helps (blockers, risk, tests, decisions).
+
+**Users:** if speech feels useless or robotic, check that agents emit the tag on substantive replies; tune voice and `total_step` in TOML, not the programming language of `py/`.
+
+---
+
 ## Daemon: start, stop, status, restart
 
 Run from **`py/`** with repo root one level up (adjust if your clone path differs):
@@ -141,7 +156,7 @@ Paths like `../assets/...` are **relative to `py/`** (because the daemon is star
 
 ### `total_step`
 
-- **Meaning:** ONNX denoising steps (quality vs CPU time). Same idea as `--total-step` in examples (defaults differ: daemon TOML often `4`, `example_onnx` default `8`).
+- **Meaning:** ONNX denoising steps (quality vs CPU time). Same idea as `--total-step` in examples (default **`8`** in TOML; use `4` for faster but rougher speech).
 - **Type:** Integer ≥ `1` (passed as `totalStep` on `/say`; invalid values may fail at runtime).
 - **Restart?** No.
 
@@ -209,7 +224,7 @@ Paths like `../assets/...` are **relative to `py/`** (because the daemon is star
 ### `only_speak_spoken_summary`
 
 - **Meaning:** If **`true`**, the prepare script outputs **`{}`** whenever the assistant message has **no** `<spoken_summary>…</spoken_summary>` block — no sentence heuristics and no plain excerpt. Guarantees TTS never reads a language mismatch from fallbacks; you must write the tag in the same language as **`lang`**.
-- **Type:** Boolean. Default **`false`** (backward compatible: heuristics still run without a tag).
+- **Type:** Boolean. Default in this repo: **`true`** (tag-only; clearer for listening). Set **`false`** to allow heuristic fallbacks when there is no tag.
 - **Restart?** No.
 
 ---
