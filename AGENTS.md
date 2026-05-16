@@ -5,13 +5,14 @@
 - **Goal:** post-reply **local TTS** for coding agents (Cursor today; Claude & Codex adapters tracked in [CONTRIBUTING.md](CONTRIBUTING.md)).
 - **`.cursor/hooks.json`** — Cursor adapter; must include `"version": 1`.
 - **`.cursor/hooks/`** — `speak_summary.sh`, `speak_summary.toml`, `README.md` (full TOML reference), `hook_payload_trace.sh`.
-- **`py/`** — `tts_daemon.py`, `tts_daemon_ctl.py`, `speak_summary_prepare.py`, vendored `helper.py` (Supertonic), `tts_io.py`, `fetch_assets.py`, diagnostics.
+- **`py/`** — `tts_daemon.py`, `tts_daemon_ctl.py`, `speak_summary_prepare.py`, `speak_summary_toggle.py` (flip `enabled` in TOML), vendored `helper.py` (Supertonic), `tts_io.py`, `fetch_assets.py`, diagnostics.
 - **`scripts/bootstrap.sh`** — `uv sync` + HF snapshot if ONNX dir missing.
 
 ## Commands
 
 - Bootstrap: `bash scripts/bootstrap.sh` from repo root.
 - Daemon: `cd py && uv run python tts_daemon_ctl.py start --repo-root ..`
+- Spoken TTS on/off: `uv run --directory py python speak_summary_toggle.py {on|off|toggle|status}` — or Cursor task **Aftertone: toggle spoken TTS** (see [README.md](README.md#turn-spoken-tts-on-or-off)).
 - `uv run` examples: `cd py` first, or `uv run --directory py …` from repo root.
 
 ## Env

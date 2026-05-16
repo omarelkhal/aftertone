@@ -41,6 +41,23 @@ bash scripts/bootstrap.sh
 - **Smoke (needs assets + audio):** `bash py/test_speak_summary_pipeline.sh`
 - **Diagnostics:** `bash py/diagnose_speak_hooks.sh`
 
+### Turn spoken TTS on or off
+
+Spoken summaries use **`enabled`** in [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml). The hook reads it on **every** agent reply — **no daemon restart**.
+
+| Goal | What to do |
+|------|------------|
+| **Off** (no speech after replies) | `cd py && uv run python speak_summary_toggle.py off` — or set `enabled = false` in the TOML |
+| **On** | `cd py && uv run python speak_summary_toggle.py on` — or `enabled = true` |
+| **Flip** | `uv run --directory py python speak_summary_toggle.py toggle` |
+| **Check** | `uv run --directory py python speak_summary_toggle.py status` → prints `on` or `off` |
+
+**In Cursor:** open this repo as the workspace root → **Terminal → Run Task…** → **Aftertone: toggle spoken TTS** (tasks live in [`.vscode/tasks.json`](.vscode/tasks.json)). Bind a keyboard shortcut via **Keyboard Shortcuts** if you want one key to flip it.
+
+Turning **`enabled`** off only stops new `/say` requests; the daemon may still be running. To unload models and free resources: `cd py && uv run python tts_daemon_ctl.py stop --repo-root ..`.
+
+Full TOML reference: [`.cursor/hooks/README.md`](.cursor/hooks/README.md).
+
 ### Repo root env (any adapter)
 
 Hooks and Python resolve the install root via **`AFTERTONE_REPO`** (preferred) or legacy **`SUPERTONIC_REPO`**.
@@ -57,8 +74,6 @@ Bring `.cursor/` + `py/` (or symlink). Keep `speak_summary.toml` paths consisten
 | [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml) | Port, voice, `lang`, speed, GPU, quiet hours, limits, heuristics, tag-only mode. |
 | [`.cursor/rules/spoken-summary.mdc`](.cursor/rules/spoken-summary.mdc) | When/how to emit `<spoken_summary>`; **match TOML `lang`** (synced blurb — run `uv run --directory py python sync_spoken_rule_lang.py` from repo root after edits). |
 | **[`AGENTS.md`](AGENTS.md)** | Cursor TTS digest (flow, verify hooks, caps, “nothing speaks”). |
-
-Disable speech: `enabled = false` in `speak_summary.toml`.
 
 ## Contributing
 

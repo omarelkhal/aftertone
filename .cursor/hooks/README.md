@@ -4,6 +4,20 @@ This folder holds the **Cursor hook** scripts, **`hooks.json`**, and **`speak_su
 
 ---
 
+## Toggle spoken TTS from Cursor (no daemon restart)
+
+`enabled` in `speak_summary.toml` is read on **every** agent reply. Flip it without editing the file by hand:
+
+```bash
+cd py && uv run python speak_summary_toggle.py toggle   # or: on | off | status
+```
+
+**In the IDE:** **Terminal → Run Task…** → **Aftertone: toggle spoken TTS** (see [`.vscode/tasks.json`](../../.vscode/tasks.json)). Bind a shortcut under **Keyboard Shortcuts** → search `Tasks: Run Task` or assign a key to that task name.
+
+Cursor does not ship a dedicated Aftertone status-bar widget; this task + optional keybinding is the lightweight equivalent. Turning TTS off does not stop the daemon; use `tts_daemon_ctl.py stop` if you want silence and no loaded models.
+
+---
+
 ## Daemon: start, stop, status, restart
 
 Run from **`py/`** with repo root one level up (adjust if your clone path differs):

@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Aftertone: toggle spoken TTS",
+      "type": "shell",
+      "command": "uv run --directory py python speak_summary_toggle.py toggle",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "AFTERTONE_REPO": "${workspaceFolder}"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Aftertone: spoken TTS on",
+      "type": "shell",
+      "command": "uv run --directory py python speak_summary_toggle.py on",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "AFTERTONE_REPO": "${workspaceFolder}"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Aftertone: spoken TTS off",
+      "type": "shell",
+      "command": "uv run --directory py python speak_summary_toggle.py off",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "AFTERTONE_REPO": "${workspaceFolder}"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Aftertone: spoken TTS status",
+      "type": "shell",
+      "command": "uv run --directory py python speak_summary_toggle.py status",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "AFTERTONE_REPO": "${workspaceFolder}"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}
