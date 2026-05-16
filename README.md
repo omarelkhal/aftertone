@@ -29,6 +29,31 @@ If you are searching for **local text-to-speech**, **on-device** assistants, **A
 
 ## Quick start
 
+### One-line install
+
+Requires **git**. Installs to **`~/aftertone`** by default (clone + `uv sync` + model download).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash
+```
+
+Options (pass after `bash -s --`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --dir ~/code/aftertone
+```
+
+Add hooks into **another project** (symlinks `assets/` from the install clone):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --into .
+```
+
+See [`scripts/install.sh`](scripts/install.sh) and [`scripts/README.md`](scripts/README.md).
+
+### Manual clone
+
 ```bash
 git clone https://github.com/omarelkhal/aftertone.git
 cd aftertone

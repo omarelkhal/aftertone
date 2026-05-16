@@ -11,6 +11,7 @@
 
 ## Commands
 
+- One-line install: `curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash` (see `scripts/install.sh`).
 - Bootstrap: `bash scripts/bootstrap.sh` from repo root.
 - Daemon: `cd py && uv run python tts_daemon_ctl.py start --repo-root ..`
 - **User config:** slash `/aftertone-*` only ([`.cursor/commands/`](.cursor/commands/)). When the user wants to change TTS settings, run the matching command’s scripts — do not tell them to edit TOML or use terminal CLIs directly. **lang/speed/mode/voice** without a value: **AskQuestion** first (see each command file); **voice** uses `set voice … --restart --ensure`. Open the **repo root** as the workspace so commands load (opening only `py/` still works for hooks via [py/.cursor/hooks.json](py/.cursor/hooks.json) if present).
