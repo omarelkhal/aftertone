@@ -6,7 +6,7 @@
 
 **Hear a short spoken line after your coding agent answers** — on-device **[Supertonic](https://github.com/supertone-inc/supertonic) ONNX** through a tiny **local HTTP daemon** (models stay loaded; hooks stay fast).
 
-One daemon, thin adapters per tool — **Cursor ships today**; more agents are on the roadmap. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md) and the **Adapter research** issue template.
+One daemon, thin adapters per tool — **Cursor ships today**; **Claude Code**, **Codex**, and **OpenCode** are on the roadmap. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md) and the **Adapter research** issue template.
 
 ## Works with
 
@@ -15,64 +15,32 @@ One daemon, thin adapters per tool — **Cursor ships today**; more agents are o
   <sub>Same local <code>tts_daemon</code> — each adapter wires “reply finished” → short spoken line</sub>
 </p>
 
-<p align="center">
+<div align="center">
   <table>
     <tr>
-      <td align="center" width="128">
+      <td align="center" width="140">
         <a href="https://cursor.com" title="Cursor"><img src="https://cdn.simpleicons.org/cursor/1a1714" alt="Cursor" height="44" /></a><br>
         <strong>Cursor</strong><br>
         <sub>✅ Available</sub>
       </td>
-      <td align="center" width="128">
+      <td align="center" width="140">
         <a href="https://docs.anthropic.com/en/docs/claude-code" title="Claude Code"><img src="https://cdn.simpleicons.org/anthropic/191919" alt="Claude Code" height="44" style="opacity:0.55" /></a><br>
         <strong>Claude Code</strong><br>
         <sub>Coming soon</sub>
       </td>
-      <td align="center" width="128">
+      <td align="center" width="140">
         <a href="https://developers.openai.com/codex" title="OpenAI Codex"><img src="https://cdn.simpleicons.org/openai/412991" alt="Codex" height="44" style="opacity:0.55" /></a><br>
         <strong>Codex</strong><br>
         <sub>Coming soon</sub>
       </td>
-      <td align="center" width="128">
+      <td align="center" width="140">
         <a href="https://opencode.ai" title="OpenCode"><img src="img/adapters/opencode.svg" alt="OpenCode" height="44" style="opacity:0.55" /></a><br>
         <strong>OpenCode</strong><br>
         <sub>Coming soon</sub>
       </td>
-      <td align="center" width="128">
-        <a href="https://github.com/features/copilot" title="GitHub Copilot"><img src="https://cdn.simpleicons.org/githubcopilot/24292f" alt="GitHub Copilot" height="44" style="opacity:0.55" /></a><br>
-        <strong>GitHub Copilot</strong><br>
-        <sub>Coming soon</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="128">
-        <a href="https://windsurf.com" title="Windsurf"><img src="https://cdn.simpleicons.org/codeium/0099DA" alt="Windsurf" height="44" style="opacity:0.55" /></a><br>
-        <strong>Windsurf</strong><br>
-        <sub>Coming soon</sub>
-      </td>
-      <td align="center" width="128">
-        <a href="https://www.jetbrains.com/ai/" title="JetBrains AI"><img src="https://cdn.simpleicons.org/jetbrains/000000" alt="JetBrains" height="44" style="opacity:0.55" /></a><br>
-        <strong>JetBrains AI</strong><br>
-        <sub>Coming soon</sub>
-      </td>
-      <td align="center" width="128">
-        <a href="https://zed.dev" title="Zed"><img src="https://cdn.simpleicons.org/zedindustries/084CCF" alt="Zed" height="44" style="opacity:0.55" /></a><br>
-        <strong>Zed</strong><br>
-        <sub>Coming soon</sub>
-      </td>
-      <td align="center" width="128">
-        <a href="https://cline.bot" title="Cline"><img src="https://cdn.simpleicons.org/visualstudiocode/007ACC" alt="Cline" height="44" style="opacity:0.55" /></a><br>
-        <strong>Cline</strong><br>
-        <sub>Coming soon</sub>
-      </td>
-      <td align="center" width="128">
-        <a href="https://www.continue.dev" title="Continue"><img src="img/adapters/continue.svg" alt="Continue" height="44" style="opacity:0.55" /></a><br>
-        <strong>Continue</strong><br>
-        <sub>Coming soon</sub>
-      </td>
     </tr>
   </table>
-</p>
+</div>
 
 <p align="center">
   <sub>Missing your stack? Open an <a href="https://github.com/omarelkhal/aftertone/issues/new?template=adapter_research.md">adapter research</a> issue — tracked in <a href="CONTRIBUTING.md#what-were-building">CONTRIBUTING</a>.</sub>
