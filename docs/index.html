@@ -107,8 +107,8 @@
             <p>Ships <code>afterAgentResponse</code> integration. Roadmap: Claude Code, Codex, and other adapters.</p>
           </article>
           <article class="card">
-            <h3>You control the voice</h3>
-            <p>Pick voice preset, language, speed, quiet hours, and how much fallback text is spoken.</p>
+            <h3>Slash commands</h3>
+            <p>In Cursor Agent chat, use <code>/aftertone-voice</code>, <code>/aftertone-lang</code>, and more — no hand-editing TOML.</p>
           </article>
         </div>
       </div>
@@ -118,20 +118,16 @@
       <div class="wrap">
         <div class="section-head">
           <span class="pill">Quick start</span>
-          <h2>From clone to first spoken line</h2>
-          <p>Full troubleshooting and config tables are on the <a href="docs.html">docs page</a>.</p>
+          <h2>Install in one line</h2>
+          <p>Defaults to <code>~/aftertone</code>. Slash commands, manual install, and troubleshooting are on the <a href="docs.html">docs page</a>.</p>
         </div>
         <div class="code-block">
           <div class="code-label">Terminal</div>
-          <pre><code>git clone https://github.com/omarelkhal/aftertone.git
-cd aftertone
-bash scripts/bootstrap.sh
-cd py && uv run python tts_daemon_ctl.py start --repo-root ..
-bash ../py/test_speak_summary_pipeline.sh</code></pre>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon</code></pre>
         </div>
         <div class="callout callout-tip">
           <strong>Cursor checklist</strong>
-          Open the <strong>repo root</strong> as the workspace, enable <strong>Hooks</strong>, trust the workspace, and confirm <code>.cursor/hooks.json</code> includes <code>"version": 1</code>.
+          Open the install folder as the workspace, enable <strong>Hooks</strong>, trust the workspace, then in Agent chat run <code>/aftertone-status</code> and <code>/aftertone-on</code>.
         </div>
         <p style="text-align: center; margin-top: 1.5rem;">
           <a class="btn btn-primary" href="docs.html">Read the full guide →</a>
@@ -149,11 +145,11 @@ bash ../py/test_speak_summary_pipeline.sh</code></pre>
         <div class="code-block">
           <div class="code-label">Example (end of agent message)</div>
           <pre><code>&lt;spoken_summary&gt;
-We fixed the daemon port mismatch by restarting after editing speak_summary.toml.
+We switched the voice to Sara and set the spoken language to French with slash commands.
 &lt;/spoken_summary&gt;</code></pre>
         </div>
         <p style="color: var(--muted); font-size: 0.95rem; max-width: 40rem;">
-          Match the language in <code>speak_summary.toml</code> (<code>lang</code>). The hook does not translate.
+          Set language with <code>/aftertone-lang</code>; write the tag in that language. The hook does not translate.
           See <a href="docs.html#spoken-summary">spoken summary rules</a>.
         </p>
       </div>

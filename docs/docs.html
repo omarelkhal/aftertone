@@ -39,6 +39,7 @@
     <aside class="docs-sidebar" aria-label="On this page">
       <nav>
         <a href="#getting-started">Getting started</a>
+        <a href="#slash-commands">Slash commands</a>
         <a href="#cursor">Cursor setup</a>
         <a href="#daemon">Daemon commands</a>
         <a href="#config">Configuration</a>
@@ -51,20 +52,19 @@
     <article class="docs-main">
       <h1 id="getting-started">Getting started</h1>
       <p class="docs-intro">
-        You need <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a>, a clone of this repo, ONNX weights under <code>assets/</code>, and the TTS daemon running before Cursor can speak.
+        You need <strong>git</strong>, <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a> (or <code>--install-uv</code> on the installer), ONNX weights under <code>assets/</code>, and the TTS daemon running before Cursor can speak. Change settings with <strong>slash commands</strong> in Agent chat — not by editing TOML by hand.
       </p>
 
       <ol class="steps">
         <li class="step">
           <div class="step-body">
-            <h3>Clone and bootstrap</h3>
-            <p>From your terminal, install Python deps and download Supertonic models if they are missing.</p>
+            <h3>One-line install (recommended)</h3>
+            <p>Clones to <code>~/aftertone</code> by default, runs <code>uv sync</code>, and downloads Supertonic models.</p>
             <div class="code-block">
               <div class="code-label">Terminal</div>
-              <pre><code>git clone https://github.com/omarelkhal/aftertone.git
-cd aftertone
-bash scripts/bootstrap.sh</code></pre>
+              <pre><code>curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon</code></pre>
             </div>
+            <p style="margin-top: 0.75rem;">Manual clone: <code>git clone … && bash scripts/bootstrap.sh</code>. Add hooks to another repo: <code>bash -s -- --into .</code>. See <a href="https://github.com/omarelkhal/aftertone/blob/main/scripts/README.md">scripts/README.md</a>.</p>
           </div>
         </li>
         <li class="step">
@@ -99,10 +99,37 @@ uv run python tts_daemon_ctl.py start --repo-root ..</code></pre>
         <li class="step">
           <div class="step-body">
             <h3>Trigger a real agent reply</h3>
-            <p>Ask the agent something substantive. You should hear one short line after it finishes. If not, see <a href="#troubleshooting">Troubleshooting</a>.</p>
+            <p>Run <code>/aftertone-on</code>, ask something substantive, and listen for one short line after the reply. If not, see <a href="#troubleshooting">Troubleshooting</a>.</p>
           </div>
         </li>
       </ol>
+
+      <h2 id="slash-commands">Slash commands (Cursor)</h2>
+      <p>Open the Aftertone folder as the workspace root. In <strong>Agent</strong> chat, type <code>/</code> and pick an <code>aftertone-</code> command. The agent runs the repo scripts for you — <strong>do not</strong> hand-edit <code>speak_summary.toml</code> for everyday changes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Command</th><th>What it changes</th><th>Daemon restart?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>/aftertone-toggle</code></td><td>Flip spoken TTS on/off</td><td>No</td></tr>
+            <tr><td><code>/aftertone-on</code> · <code>/aftertone-off</code></td><td>Force on or off</td><td>No</td></tr>
+            <tr><td><code>/aftertone-status</code></td><td>Show settings + daemon health</td><td>No</td></tr>
+            <tr><td><code>/aftertone-lang</code></td><td>Language (syncs agent spoken-summary rule)</td><td>No</td></tr>
+            <tr><td><code>/aftertone-speed</code></td><td>Playback speed</td><td>No</td></tr>
+            <tr><td><code>/aftertone-mode</code></td><td><code>queue</code> or <code>interrupt</code></td><td>No</td></tr>
+            <tr><td><code>/aftertone-voice</code></td><td>Voice picker (human names, e.g. Sara (female), James (male))</td><td><strong>Yes</strong> (command restarts for you)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-tip">
+        <strong>Voices</strong>
+        Pickers show names like Elena (female) and James (male); TOML still stores preset ids (<code>F1</code>–<code>F5</code>, <code>M1</code>–<code>M5</code>). You can pass a first name to the config CLI (e.g. <code>Sara</code> → <code>F4</code>).
+      </div>
+
+      <p>Command definitions: <a href="https://github.com/omarelkhal/aftertone/tree/main/.cursor/commands"><code>.cursor/commands/</code></a> on GitHub.</p>
 
       <h2 id="cursor">Cursor setup</h2>
       <div class="cards" style="margin-bottom: 1.25rem;">
@@ -155,7 +182,7 @@ uv run python tts_daemon_ctl.py stop --repo-root ..</code></pre>
       </div>
 
       <h2 id="config">Configuration</h2>
-      <p>Edit <a href="https://github.com/omarelkhal/aftertone/blob/main/.cursor/hooks/speak_summary.toml"><code>.cursor/hooks/speak_summary.toml</code></a>. Common knobs:</p>
+      <p>Use <a href="#slash-commands">slash commands</a> for <code>enabled</code>, <code>lang</code>, <code>speed</code>, <code>mode</code>, and <code>voice_type</code>. The file <a href="https://github.com/omarelkhal/aftertone/blob/main/.cursor/hooks/speak_summary.toml"><code>.cursor/hooks/speak_summary.toml</code></a> is updated by those commands; edit it directly only for advanced keys. Common knobs:</p>
 
       <div class="table-wrap">
         <table>
@@ -165,7 +192,7 @@ uv run python tts_daemon_ctl.py stop --repo-root ..</code></pre>
           <tbody>
             <tr><td><code>enabled</code></td><td>Master switch — <code>false</code> silences all speech</td></tr>
             <tr><td><code>lang</code></td><td>ONNX language and the language agents should use in <code>&lt;spoken_summary&gt;</code> (no auto-translation)</td></tr>
-            <tr><td><code>voice_type</code> / <code>voice_style</code></td><td>Preset id (e.g. M1, F2) or path to voice JSON</td></tr>
+            <tr><td><code>voice_type</code> / <code>voice_style</code></td><td>Preset id (e.g. F4) or path to voice JSON; pick via <code>/aftertone-voice</code></td></tr>
             <tr><td><code>speed</code></td><td>Playback speed (1.0 = baseline)</td></tr>
             <tr><td><code>quiet_hours</code></td><td>e.g. <code>22:00-08:00</code> — no speech in that window (local clock)</td></tr>
             <tr><td><code>spoken_summary_max_chars</code></td><td>Cap for tag text (default 360)</td></tr>
@@ -174,8 +201,7 @@ uv run python tts_daemon_ctl.py stop --repo-root ..</code></pre>
         </table>
       </div>
 
-      <p>After changing <code>lang</code>, sync the Cursor rule from repo root:</p>
-      <pre><code>uv run --directory py python sync_spoken_rule_lang.py</code></pre>
+      <p><code>/aftertone-lang</code> updates <code>lang</code> and syncs the Cursor rule automatically. Manual sync from repo root: <code>uv run --directory py python sync_spoken_rule_lang.py</code></p>
 
       <h2 id="spoken-summary">Spoken summaries</h2>
       <p>Best quality comes from a deliberate tag at the end of the agent message:</p>

@@ -99,15 +99,40 @@ If you are searching for **local text-to-speech**, **on-device** assistants, **A
 
 ## Quick start
 
+### One-line install
+
+Requires **git**. Installs to **`~/aftertone`** by default (clone + `uv sync` + model download).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash
+```
+
+Options (pass after `bash -s --`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --dir ~/code/aftertone
+```
+
+Add hooks into **another project** (symlinks `assets/` from the install clone):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --into .
+```
+
+See [`scripts/install.sh`](scripts/install.sh) and [`scripts/README.md`](scripts/README.md).
+
+### Manual clone
+
 ```bash
 git clone https://github.com/omarelkhal/aftertone.git
 cd aftertone
 bash scripts/bootstrap.sh
 ```
 
-**Cursor:** open this folder as the workspace root so project hooks load.
+**Cursor:** open the install folder as the **workspace root** so project hooks load. Enable **Hooks**, **trust** the workspace, and confirm `.cursor/hooks.json` has `"version": 1`.
 
-- **Daemon:** `cd py && uv run python tts_daemon_ctl.py status --repo-root ..`
+- **Daemon:** `cd py && uv run python tts_daemon_ctl.py start --repo-root ..` then `status`
 - **Smoke (needs assets + audio):** `bash py/test_speak_summary_pipeline.sh`
 - **Diagnostics:** `bash py/diagnose_speak_hooks.sh`
 
@@ -117,18 +142,34 @@ Hooks and Python resolve the install root via **`AFTERTONE_REPO`** (preferred) o
 
 ### Copy into another repo
 
-Bring `.cursor/` + `py/` (or symlink). Keep `speak_summary.toml` paths consistent (`../assets/onnx`, etc.).
+Use `install.sh --into .` or bring `.cursor/` + `py/` manually. Keep `speak_summary.toml` paths consistent (`../assets/onnx`, etc.).
+
+## Control (Cursor slash commands)
+
+Open this repo as the workspace root. In **Agent** chat, type **`/`** and pick an **`aftertone-`** command. That is the **supported** way to change spoken-TTS settings — do **not** hand-edit [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml) for everyday changes.
+
+| Command | What it does |
+|---------|----------------|
+| `/aftertone-toggle` | Flip spoken TTS on/off |
+| `/aftertone-on` / `/aftertone-off` | Force on or off |
+| `/aftertone-status` | Current settings + daemon health |
+| `/aftertone-lang` | Pick language (syncs [spoken-summary rule](.cursor/rules/spoken-summary.mdc)) |
+| `/aftertone-speed` | Pick playback speed |
+| `/aftertone-mode` | Pick `queue` or `interrupt` |
+| `/aftertone-voice` | Pick a voice (e.g. Sara (female), James (male)) → restarts daemon |
+
+Command definitions: [`.cursor/commands/`](.cursor/commands/).
+
+**Daemon (start/stop, not everyday config):** `cd py && uv run python tts_daemon_ctl.py {start|stop|status|restart} --repo-root ..` — see [`.cursor/hooks/README.md`](.cursor/hooks/README.md). Turning TTS **off** via `/aftertone-off` does not unload models; use **stop** when you want silence and no GPU/RAM use.
 
 ## Configuration
 
 | Doc / file | Role |
 |------------|------|
-| **[`.cursor/hooks/README.md`](.cursor/hooks/README.md)** | **Full reference:** every `speak_summary.toml` key (including **`spoken_summary_max_chars`**, **`heuristic_max_chars`**, **`plain_excerpt_max_chars`**, **`only_speak_spoken_summary`**), valid `lang` codes, heuristics, `quiet_hours`, daemon **start / stop / status / restart**, logs, smoke test, when TOML changes need a restart, and **`sync_spoken_rule_lang.py`** after changing `lang`. |
-| [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml) | Port, voice, `lang`, speed, GPU, quiet hours, limits, heuristics, tag-only mode. |
-| [`.cursor/rules/spoken-summary.mdc`](.cursor/rules/spoken-summary.mdc) | When/how to emit `<spoken_summary>`; **match TOML `lang`** (synced blurb — run `uv run --directory py python sync_spoken_rule_lang.py` from repo root after edits). |
-| **[`AGENTS.md`](AGENTS.md)** | Cursor TTS digest (flow, verify hooks, caps, “nothing speaks”). |
-
-Disable speech: `enabled = false` in `speak_summary.toml`.
+| **[`.cursor/hooks/README.md`](.cursor/hooks/README.md)** | **Full TOML reference:** every `speak_summary.toml` key, valid `lang` codes, heuristics, `quiet_hours`, daemon **start / stop / status / restart**, logs, when changes need a restart. |
+| [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml) | On-disk config (updated by slash commands and install). |
+| [`.cursor/rules/spoken-summary.mdc`](.cursor/rules/spoken-summary.mdc) | When/how agents emit `<spoken_summary>`; **match TOML `lang`**. |
+| **[`AGENTS.md`](AGENTS.md)** | Agent-oriented digest (flow, verify hooks, caps, “nothing speaks”). |
 
 ## Contributing
 
@@ -136,18 +177,8 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** and the **[Code of Conduct](CODE_OF_C
 
 ## Website
 
-**[aftertone on GitHub Pages](https://omarelkhal.github.io/aftertone/)** — home + **[docs](https://omarelkhal.github.io/aftertone/docs.html)** (install steps, daemon, config, troubleshooting). Built from [`docs/`](docs/). Enable in the **repository** (not your profile): **aftertone → Settings → Pages** → source **Deploy from a branch**, branch **`main`**, folder **`/docs`**.
+**[aftertone on GitHub Pages](https://omarelkhal.github.io/aftertone/)** — home + **[docs](https://omarelkhal.github.io/aftertone/docs.html)** (one-line install, slash commands, daemon, troubleshooting). Built from [`docs/`](docs/).
 
 ## License
 
 MIT — [LICENSE](LICENSE). Supertonic-derived code: [NOTICE](NOTICE).
-
-## Publish to GitHub
-
-```bash
-cd /path/to/aftertone
-git remote add origin https://github.com/omarelkhal/aftertone.git
-git push -u origin main
-```
-
-Or: `gh repo create aftertone --public --source=. --remote=origin --push`
