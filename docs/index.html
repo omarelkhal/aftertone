@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Aftertone — local text-to-speech after your coding agent replies. Cursor hooks, Supertonic ONNX, no cloud." />
+  <meta name="theme-color" content="#c4783a" />
+  <title>Aftertone — hear a short line after your agent answers</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --fg: #1a1714;
+      --muted: #5c534a;
+      --accent: #c4783a;
+      --accent-dim: #9a5f2e;
+      --card: #fff;
+      --border: #e8e0d6;
+      --radius: 12px;
+      --font: ui-sans-serif, system-ui, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
+      --mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.55;
+    }
+    a { color: var(--accent-dim); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+    header {
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 1.25rem; }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 3.5rem;
+      flex-wrap: wrap;
+    }
+    .brand { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; color: var(--fg); }
+    .nav-links { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.95rem; }
+    .hero {
+      padding: 2.75rem 0 2.25rem;
+      text-align: center;
+    }
+    .hero img {
+      max-width: min(420px, 92vw);
+      height: auto;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(1.65rem, 4vw, 2.15rem);
+      font-weight: 750;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.75rem;
+      line-height: 1.2;
+    }
+    .hero p.lead {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 36rem;
+      margin: 0 auto 1.5rem;
+    }
+    .cta-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { filter: brightness(1.05); color: #fff; }
+    .btn-ghost {
+      background: var(--card);
+      border-color: var(--border);
+      color: var(--fg);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent-dim); }
+    section { padding: 2rem 0; }
+    section h2 {
+      font-size: 1.15rem;
+      margin: 0 0 1rem;
+      letter-spacing: -0.02em;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+    }
+    .card h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+    .card p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+    pre, code { font-family: var(--mono); font-size: 0.86rem; }
+    pre {
+      background: #1e1b18;
+      color: #f4eee6;
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin: 0;
+      line-height: 1.45;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent-dim);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0 2rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <span class="brand">Aftertone</span>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="https://github.com/omarelkhal/aftertone">GitHub</a>
+        <a href="https://github.com/omarelkhal/aftertone/blob/main/README.md">README</a>
+        <a href="https://github.com/omarelkhal/aftertone/blob/main/CONTRIBUTING.md">Contributing</a>
+        <a href="https://github.com/supertone-inc/supertonic">Supertonic</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap hero">
+    <img
+      src="https://raw.githubusercontent.com/omarelkhal/aftertone/main/img/aftertone-logo.png"
+      alt="Aftertone logo"
+      width="480"
+      height="120"
+      loading="eager"
+      onerror="this.style.display='none'"
+    />
+    <h1>Hear a short line after your coding agent answers</h1>
+    <p class="lead">
+      On-device <strong>Supertonic</strong> ONNX through a tiny <strong>local HTTP daemon</strong> — models stay loaded, hooks stay fast, audio stays on your machine.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/omarelkhal/aftertone">View on GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/omarelkhal/aftertone/blob/main/README.md#quick-start">Quick start</a>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <span class="pill">Today</span>
+      <h2>What you get</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Cursor integration</h3>
+          <p><code>afterAgentResponse</code> can trigger optional TTS from reply text. Prefer a <code>&lt;spoken_summary&gt;</code> line written for speech.</p>
+        </div>
+        <div class="card">
+          <h3>Daemon + prepare</h3>
+          <p><code>speak_summary_prepare.py</code> builds JSON for <code>POST /say</code>; <code>tts_daemon.py</code> serves localhost and plays audio.</p>
+        </div>
+        <div class="card">
+          <h3>Bootstrap</h3>
+          <p><code>bash scripts/bootstrap.sh</code> runs <code>uv sync</code> and pulls ONNX assets when <code>assets/onnx/</code> is missing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background: var(--card); border-block: 1px solid var(--border);">
+    <div class="wrap">
+      <h2>Install</h2>
+      <pre><code>git clone https://github.com/omarelkhal/aftertone.git
+cd aftertone
+bash scripts/bootstrap.sh</code></pre>
+      <p style="margin-top: 0.85rem; font-size: 0.92rem; color: var(--muted);">
+        Open the repo as your <strong>Cursor workspace root</strong> so project hooks load. See the README for daemon control, smoke tests, and diagnostics.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="pill">Roadmap</span>
+      <h2>Not Cursor-only</h2>
+      <p style="color: var(--muted); max-width: 42rem;">
+        We want first-class paths for <strong>Claude Code / Claude Desktop</strong> and <strong>OpenAI Codex</strong>. If you want to help, read
+        <a href="https://github.com/omarelkhal/aftertone/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> and open a PR or design issue.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <p>
+        <a href="https://github.com/omarelkhal/aftertone/blob/main/LICENSE">MIT</a>
+        · Supertonic-derived portions: <a href="https://github.com/omarelkhal/aftertone/blob/main/NOTICE">NOTICE</a>
+      </p>
+      <p style="margin-top: 0.5rem;">
+        GitHub Pages from <code>/docs</code> ·
+        <a href="https://github.com/omarelkhal/aftertone">github.com/omarelkhal/aftertone</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
