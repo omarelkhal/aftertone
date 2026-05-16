@@ -5,22 +5,31 @@ alwaysApply: true
 
 ## Spoken summary (Aftertone / local TTS)
 
-This workspace uses **Aftertone**: after a coding agent finishes a reply, a hook can **speak one short line** via local TTS. The prepare script prefers explicit text inside `<spoken_summary>...</spoken_summary>` in your **final** assistant message; otherwise it falls back to a short heuristic (often worse for speech).
+This **Aftertone** workspace runs a hook after each assistant reply that **speaks a short line** via local TTS. The script prefers explicit text inside `<spoken_summary>...</spoken_summary>` in your **final** assistant message; otherwise it uses a small heuristic (skips some empty openers). **Quality mostly depends on this tag** — treat it as a **mini briefing for someone listening, not looking at the screen**.
 
 **Adapters:** Cursor is wired today; Claude / Codex paths may differ — still end substantive replies with the tag when your tool runs the same TTS pipeline.
 
 **When to include the tag**
 
 - Include it for **substantive** answers (explanations, steps, design, debugging, multi-sentence replies).
-- **Skip** it for trivial replies (single word, pure ack, “done”, emoji-only).
+- **Skip** it for trivial replies (single word, pure ack, “done”, emoji-only). The hook will fall back to a short heuristic or stay quiet if too short.
+
+**Language (must match TOML `lang`)**
+
+- Read **`lang`** in [`.cursor/hooks/speak_summary.toml`](../hooks/speak_summary.toml) before you write `<spoken_summary>`.
+- Write **only** the inner tag text in the **natural language that matches that code** (e.g. `en` → English, `fr` → French, `ja` → Japanese, `ko` → Korean). The hook sends the same `lang` to the TTS stack; if the spoken line is a different language than `lang`, pronunciation and rhythm are usually wrong.
+- The **rest** of your reply can stay in whatever language fits the user; the tag is the exception — it must follow **`lang`** so listening matches configuration.
 
 **What goes inside the tag (this is what gets spoken — nothing else from the reply is chosen)**
 
-- **One** short sentence, as if you were saying it aloud to a busy person walking past.
+- **One or two very short sentences**, friendly and conversational, as if updating a teammate who only has your voice for a few seconds.
 - Plain language only: **no** markdown, bullets, code, file paths, or URLs inside the tag (URLs are painful when read aloud).
-- Summarize **outcome or gist** (“We fixed the hook by adding version one”), not every step.
-- Do **not** restate the whole answer; do **not** narrate meta (“here is your summary”).
-- Put the block **at the very end** of the message, on its own lines: open tag `<spoken_summary>`, newline, one sentence, newline, close tag `</spoken_summary>`.
+- **Be useful, not reassuring:** say **what you did or decided** and, when it helps, **why** (cause, tradeoff, or user goal) — not filler (“you’re all set”, “no worries”, “happy to help”) unless that *is* the whole answer.
+- If the **user asked a question**, start with a **direct short answer** (“Yes, force push rewrites history on the server”), then optionally add **one** clause with the key consequence or next step — still inside the same tag block.
+- **Code-heavy replies** (big fenced blocks): the listener is probably reading the code on screen — keep the spoken line **especially tight** (often **one** sentence inside the tag: what landed and where to look next).
+- Summarize **outcome or gist** (“We rewrote the readme line and amended the commit message so history doesn’t shout about metadata”), not every step.
+- Do **not** restate the whole answer; do **not** narrate meta (“here is your summary”, “I’ll keep this brief”).
+- Put the block **at the very end** of the message, on its own lines: open tag `<spoken_summary>`, newline, your line(s), newline, close tag `</spoken_summary>`.
 - Keep it concise; very long lines are capped by `max_chars` in `speak_summary.toml` (see repo root [AGENTS.md](../../AGENTS.md)).
 
 **Speech-friendly wording (TTS reads text literally)**
@@ -32,4 +41,4 @@ This workspace uses **Aftertone**: after a coding agent finishes a reply, a hook
 
 ## Manual check when the user says “test”
 
-If the user is clearly **checking that spoken TTS works** (e.g. they say **“test”**, “test speech”, “test the hook”, “say something”), **always** end your reply with `<spoken_summary>...</spoken_summary>` containing a **short, distinctive** line they can listen for (for example: “Aftertone speech test, one two three.”). That line is what the hook sends to the daemon, so they can confirm end-to-end without guessing which part of the reply would have been chosen.
+If the user is clearly **checking that spoken TTS works** (e.g. they say **“test”**, “test speech”, “test the hook”, “say something”), **always** end your reply with `<spoken_summary>...</spoken_summary>` containing a **short, distinctive** line they can listen for — **in the same language as `lang` in `speak_summary.toml`** (e.g. English test line when `lang = "en"`, French when `lang = "fr"`). That line is what the hook sends to the daemon, so they can confirm end-to-end without guessing which part of the reply would have been chosen.

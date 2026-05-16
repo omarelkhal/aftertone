@@ -1,16 +1,47 @@
 # Spoken summary hook + tts_daemon defaults (read by speak_summary_prepare.py and tts_daemon_ctl.py).
+# Full reference (every key, languages, daemon commands): README.md in this folder.
+#
+# When edits take effect
+# ----------------------
+# • Every agent reply (no daemon restart): enabled, quiet_hours, min_chars, max_chars,
+#   heuristic_*, speed, lang, total_step, mode — speak_summary_prepare.py reads this file
+#   each time and sends speed/lang/totalStep on POST /say.
+# • Only after daemon restart: port, onnx_dir, voice_style / voice_type, use_gpu — the
+#   long‑running tts_daemon loads models and voice JSON once at start (tts_daemon_ctl.py).
+# • Port file: while the daemon is running, the hook posts to the port in
+#   .cursor/hooks/state/tts-daemon.port. Changing "port" here alone does nothing until you
+#   restart so that file matches, e.g.:
+#     cd py && uv run python tts_daemon_ctl.py restart --repo-root ..
+
 enabled = true
 port = 8765
 onnx_dir = "../assets/onnx"
-voice_style = "../assets/voice_styles/M1.json"
-lang = "en"
 use_gpu = false
-total_step = 4
+mode = "queue"
+
+# --- Voice & speech ---
+# Voice preset id (M1, F2, … — whatever JSON files you have under assets/voice_styles/).
+# Used when voice_style is empty; otherwise voice_style wins.
+voice_type = "M1"
+# Path to the voice style JSON (relative to py/ or absolute). Set to "" to derive from voice_type only.
+voice_style = ""
+# Language tag passed into synthesis (see helper.AVAILABLE_LANGS), e.g. en, ko, ja.
+lang = "en"
+# Playback speed: 1.0 is baseline; higher speaks faster (same meaning as CLI examples).
 speed = 1.05
+# ONNX denoising steps (same as other Supertonic examples).
+total_step = 4
+
 # Empty = always speak. Set e.g. "22:00-08:00" for overnight quiet (local clock).
 quiet_hours = ""
 min_chars = 5
 # Max characters sent to TTS (after choosing spoken_summary or fallback text).
 # Use 0 for no limit (entire chosen text is spoken; very long replies = long audio).
 max_chars = 2000
-mode = "queue"
+# Fallback when there is no <spoken_summary>: how many sentences to join after
+# skipping soft openers (1 = brief, 2 = what + often why).
+heuristic_max_sentences = 2
+# If this fraction of the reply sits inside fenced code blocks, treat as code-heavy
+# and cap fallback sentences (listeners skim code on screen; keep TTS short).
+heuristic_code_fence_fraction = 0.35
+heuristic_max_sentences_code_heavy = 1

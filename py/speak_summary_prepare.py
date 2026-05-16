@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """
-Build JSON payload for POST /say from agent / IDE hook stdin.
+Build JSON payload for POST /say from agent / IDE hook stdin (Aftertone).
 
 Handles:
 - afterAgentResponse (Cursor and compatible hooks): uses inline `text` when
   hook_event_name is afterAgentResponse (avoids transcript_path, which stop often lacks).
 - Other events: reads transcript jsonl from transcript_path when present.
+
+Prefers `<spoken_summary>...</spoken_summary>` in the assistant reply; otherwise
+picks up to N substantive sentences (skips common reassurance openers); N is
+lower for code-heavy replies when configured in speak_summary.toml.
 
 Emits one line JSON for /say or {} if nothing to speak.
 """
@@ -134,18 +138,85 @@ def _strip_markdownish(s: str) -> str:
     return s
 
 
-def _first_sentence(s: str) -> str:
+# Sentences with clear outcomes or technical gist — if missing, short openers are easier to skip.
+_OUTCOME_HINT = re.compile(
+    r"\b("
+    r"updated|changed|fixed|added|removed|commit|push|pulled|merged|amended|amend|"
+    r"created|edited|replaced|implemented|refactor|installed|ran|wrote|saved|sent|built|"
+    r"passed|failed|hook|daemon|branch|script|readme|docs|config|test|deploy|rewrite|"
+    r"reword|moved|deleted|renamed|install|upgrade|downgrade|patch|issue|pull request"
+    r")\b",
+    re.I,
+)
+
+# Leading pleasantries / meta that are poor alone as the spoken line.
+_LOW_SUBSTANCE_HEAD = re.compile(
+    r"^("
+    r"here\'?s|here is|i\'ll|i will|let me|"
+    r"sure[,!]?|certainly[,!]?|absolutely[,!]?|"
+    r"great question|good question|makes sense|sounds good|"
+    r"you\'re (not )?wrong|you are (not )?wrong|you\'re right|you are right|"
+    r"i (get|understand)( it)?|okay|ok"
+    r")[\s,.:;]",
+    re.I,
+)
+
+
+def _is_low_substance_sentence(s: str) -> bool:
+    t = s.strip()
+    if not t:
+        return True
+    if _OUTCOME_HINT.search(t):
+        return False
+    if len(t) >= 120:
+        return False
+    tl = t.lower().strip(" '\"")
+    if re.match(r"^(done|all set)\.?!?\s*$", tl):
+        return True
+    if _LOW_SUBSTANCE_HEAD.match(t):
+        return True
+    return False
+
+
+def _split_sentences(s: str) -> list[str]:
+    """Rough sentence split on markdown-stripped text."""
     s = _strip_markdownish(s)
     if not s:
+        return []
+    chunks = re.split(r"(?<=[.!?])\s+", s)
+    return [c.strip() for c in chunks if c.strip()]
+
+
+def _code_fence_fraction(raw: str) -> float:
+    """Share of raw string length inside ```...``` fences (0..1)."""
+    raw = raw or ""
+    if not raw.strip():
+        return 0.0
+    total = len(raw)
+    covered = sum(len(m.group(0)) for m in re.finditer(r"```[\s\S]*?```", raw))
+    return covered / max(total, 1)
+
+
+def _heuristic_spoken(base: str, max_chars: int, max_sentences: int) -> str:
+    """
+    Prefer up to `max_sentences` substantive sentences; skip leading low-value openers
+    so TTS sounds like a tiny summary, not only reassurance.
+    """
+    ms = max(1, min(3, int(max_sentences)))
+    parts = _split_sentences(base)
+    if not parts:
         return ""
-    # Split on sentence end; keep first chunk reasonable
-    for sep in (". ", "! ", "? ", "\n"):
-        if sep in s:
-            s = s.split(sep)[0].strip()
-            if sep != "\n" and s:
-                s += "."
-            break
-    return s
+    i = 0
+    while i < len(parts) and _is_low_substance_sentence(parts[i]):
+        i += 1
+    if i >= len(parts):
+        # Whole reply scanned as soft openers — use the tail (often has the actual point).
+        k = min(ms, len(parts))
+        tail = " ".join(parts[-k:]).strip() if k else parts[-1].strip()
+        return _clamp(tail, max_chars) if tail else ""
+    picked = parts[i : i + ms]
+    text = " ".join(picked).strip()
+    return _clamp(text, max_chars) if text else ""
 
 
 def _plain_excerpt(raw: str, max_chars: int) -> str:
@@ -167,6 +238,22 @@ def _cfg_enabled(cfg: dict) -> bool:
     if isinstance(v, str):
         return v.strip().lower() not in ("0", "false", "no", "off")
     return bool(v)
+
+
+def _cfg_int_bounded(cfg: dict, key: str, default: int, lo: int, hi: int) -> int:
+    try:
+        v = int(cfg.get(key, default))
+    except (TypeError, ValueError):
+        v = default
+    return max(lo, min(hi, v))
+
+
+def _cfg_float_bounded(cfg: dict, key: str, default: float, lo: float, hi: float) -> float:
+    try:
+        v = float(cfg.get(key, default))
+    except (TypeError, ValueError):
+        v = default
+    return max(lo, min(hi, v))
 
 
 def main() -> None:
@@ -199,6 +286,11 @@ def main() -> None:
 
     min_chars = int(cfg.get("min_chars", 5))
     max_chars = int(cfg.get("max_chars", 2000))
+    h_max = _cfg_int_bounded(cfg, "heuristic_max_sentences", 2, 1, 3)
+    h_code_max = _cfg_int_bounded(cfg, "heuristic_max_sentences_code_heavy", 1, 1, 3)
+    fence_thr = _cfg_float_bounded(
+        cfg, "heuristic_code_fence_fraction", 0.35, 0.05, 0.95
+    )
 
     # Prefer afterAgentResponse: Cursor sends final assistant text here. The `stop` hook
     # often has no transcript_path or an empty payload; afterAgentThought also has `text`
@@ -227,13 +319,15 @@ def main() -> None:
 
     spoken = _extract_spoken_summary(raw_text)
     base = _without_spoken_block(raw_text)
+    code_heavy = _code_fence_fraction(raw_text) >= fence_thr
+    eff_sentences = h_code_max if code_heavy else h_max
 
     if spoken:
         text = _clamp(spoken, max_chars)
     else:
-        text = _clamp(_first_sentence(base), max_chars)
+        text = _heuristic_spoken(base, max_chars, eff_sentences)
         if len(text) < min_chars:
-            text = _clamp(_first_sentence(_demote_code_fences(base)), max_chars)
+            text = _heuristic_spoken(_demote_code_fences(base), max_chars, eff_sentences)
         if len(text) < min_chars:
             text = _plain_excerpt(raw_text, max_chars)
 
@@ -250,6 +344,7 @@ def main() -> None:
         "conversation_id": hook.get("conversation_id"),
         "totalStep": int(cfg.get("total_step", 4)),
         "speed": float(cfg.get("speed", 1.05)),
+        "lang": str(cfg.get("lang", "en")),
         "mode": str(cfg.get("mode", "queue")).lower(),
     }
     print(json.dumps(out, ensure_ascii=False))

@@ -45,18 +45,24 @@ printf '%s' "${HOOK_JSON}" | "${PY}/.venv/bin/python" "${PY}/hook_payload_trace.
 log "hook_invoked hook_json_bytes=${#HOOK_JSON}"
 
 read_port() {
+  local toml="${REPO}/.cursor/hooks/speak_summary.toml"
+  local toml_port=""
+  if [[ -f "${toml}" ]]; then
+    toml_port="$(grep -E '^[[:space:]]*port[[:space:]]*=' "${toml}" | head -1 | sed -E 's/.*=[[:space:]]*//' | tr -d ' \"')"
+  fi
   if [[ -f "${PORT_FILE}" ]]; then
-    tr -d ' \n\r' <"${PORT_FILE}"
+    local file_port
+    file_port="$(tr -d ' \n\r' <"${PORT_FILE}")"
+    if [[ -n "${toml_port}" ]] && [[ -n "${file_port}" ]] && [[ "${toml_port}" != "${file_port}" ]] &&
+      [[ "${toml_port}" =~ ^[0-9]+$ ]] && [[ "${file_port}" =~ ^[0-9]+$ ]]; then
+      log "port_mismatch toml_port=${toml_port} state_file_port=${file_port} hint=restart_daemon_cd_py_uv_run_tts_daemon_ctl_restart"
+    fi
+    echo "${file_port}"
     return
   fi
-  local toml="${REPO}/.cursor/hooks/speak_summary.toml"
-  if [[ -f "${toml}" ]]; then
-    local p
-    p="$(grep -E '^[[:space:]]*port[[:space:]]*=' "${toml}" | head -1 | sed -E 's/.*=[[:space:]]*//' | tr -d ' \"')"
-    if [[ -n "${p}" ]] && [[ "${p}" =~ ^[0-9]+$ ]]; then
-      echo "${p}"
-      return
-    fi
+  if [[ -n "${toml_port}" ]] && [[ "${toml_port}" =~ ^[0-9]+$ ]]; then
+    echo "${toml_port}"
+    return
   fi
   echo "8765"
 }

@@ -51,10 +51,11 @@ Bring `.cursor/` + `py/` (or symlink). Keep `speak_summary.toml` paths consisten
 
 ## Configuration
 
-| File | Role |
-|------|------|
-| `.cursor/hooks/speak_summary.toml` | Port, `quiet_hours`, `min_chars` / `max_chars`, GPU |
-| `.cursor/rules/spoken-summary.mdc` | When/how to emit `<spoken_summary>`; **write for speech** (expand abbreviations, no URLs in tag) |
+| Doc / file | Role |
+|------------|------|
+| **[`.cursor/hooks/README.md`](.cursor/hooks/README.md)** | **Full reference:** every `speak_summary.toml` key, `lang` list, heuristics, `quiet_hours`, daemon **start/stop/status/restart**, logs. |
+| [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml) | Port, voice, `lang`, speed, GPU, quiet hours, limits, heuristics. |
+| [`.cursor/rules/spoken-summary.mdc`](.cursor/rules/spoken-summary.mdc) | When/how to emit `<spoken_summary>`; **match TOML `lang`** inside the tag; write for speech. |
 
 Disable speech: `enabled = false` in `speak_summary.toml`.
 

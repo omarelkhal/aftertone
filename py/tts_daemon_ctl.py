@@ -57,6 +57,17 @@ def _load_hook_config(repo: Path) -> dict:
         return tomllib.load(f)
 
 
+def _voice_style_from_cfg(cfg: dict) -> str:
+    """Explicit voice_style path, or ../assets/voice_styles/<voice_type>.json relative to py/."""
+    vs = str(cfg.get("voice_style", "") or "").strip()
+    if vs:
+        return vs
+    vt = str(cfg.get("voice_type", "M1") or "M1").strip() or "M1"
+    if not vt.lower().endswith(".json"):
+        vt = f"{vt}.json"
+    return f"../assets/voice_styles/{vt}"
+
+
 def _read_pid(repo: Path) -> int | None:
     pp = _pid_path(repo)
     if not pp.is_file():
@@ -94,13 +105,38 @@ def _uv_cmd(py_dir: Path, args: list[str]) -> list[str]:
     return [sys.executable] + args
 
 
+def _print_hook_toml_summary(repo: Path) -> None:
+    cfg = _load_hook_config(repo)
+    p = _hook_toml(repo)
+    if not p.is_file():
+        print(f"speak_summary.toml: missing ({p})")
+        return
+    if not cfg:
+        print(f"speak_summary.toml: empty or unreadable ({p})")
+        return
+    vs = _voice_style_from_cfg(cfg)
+    print(
+        f"speak_summary.toml (disk): port={cfg.get('port', 8765)!r} "
+        f"voice_style={vs!r} lang={cfg.get('lang', 'en')!r} "
+        f"speed={cfg.get('speed', 1.05)!r} use_gpu={cfg.get('use_gpu', False)!r}"
+    )
+    print(
+        "toml hint: port / onnx_dir / voice / use_gpu → restart daemon to apply. "
+        "speed / lang / total_step / max_chars / heuristics / enabled / quiet_hours → each hook, no restart."
+    )
+
+
 def cmd_status(repo: Path) -> int:
+    _print_hook_toml_summary(repo)
     pid = _read_pid(repo)
     port = _read_port(repo)
     if pid is None or not _pid_alive(pid):
         print("tts_daemon: not running")
         return 1
-    print(f"tts_daemon: running pid={pid} port={port}")
+    print(
+        f"tts_daemon: running pid={pid} port={port} "
+        "(POST /say uses this port file; if it disagrees with TOML, see port_mismatch in speak_summary-hook.log)"
+    )
     if port:
         try:
             import urllib.request
@@ -144,7 +180,7 @@ def cmd_start(repo: Path, port_override: int | None) -> int:
     port = port_override or int(cfg.get("port", 8765))
     use_gpu = bool(cfg.get("use_gpu", False))
     onnx_dir = str(cfg.get("onnx_dir", "../assets/onnx"))
-    voice_style = str(cfg.get("voice_style", "../assets/voice_styles/M1.json"))
+    voice_style = _voice_style_from_cfg(cfg)
     lang = str(cfg.get("lang", "en"))
 
     py_dir = _py_dir()
@@ -208,7 +244,7 @@ def cmd_restart(repo: Path, port: int | None) -> int:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Control Supertonic tts_daemon.")
+    ap = argparse.ArgumentParser(description="Control Aftertone tts_daemon.")
     ap.add_argument("command", choices=("start", "stop", "status", "restart"))
     ap.add_argument("--repo-root", type=str, default="", help="Repo root (default: infer).")
     ap.add_argument("--port", type=int, default=0, help="Override port for start/restart.")

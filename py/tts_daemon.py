@@ -1,5 +1,5 @@
 """
-Long-running HTTP TTS daemon for IDE / agent hook integration (Aftertone).
+Long-running HTTP TTS daemon for Cursor stop-hook integration.
 
 Loads Supertonic ONNX once, accepts POST /say with short text, synthesizes and
 plays on a single worker thread. Logs spoken lines to
@@ -34,6 +34,7 @@ class SayJob:
     mode: str  # "queue" | "interrupt"
     generation_id: str | None = None
     conversation_id: str | None = None
+    lang: str | None = None  # None => use worker default from daemon startup
     job_id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
 
@@ -124,8 +125,9 @@ class TTSWorker:
                 continue
             t0 = time.perf_counter()
             try:
+                lang = ((job.lang or "").strip() or self.lang).strip()
                 wav, dur = self.tts(
-                    text, self.lang, self.style, job.total_step, job.speed
+                    text, lang, self.style, job.total_step, job.speed
                 )
                 n = int(self.sample_rate * float(dur[0].item()))
                 audio = np.asarray(wav[0, :n], dtype=np.float32)
@@ -211,6 +213,12 @@ def make_handler(worker: TTSWorker, port: int):
                 return
             total_step = int(body.get("totalStep", body.get("total_step", 4)))
             speed = float(body.get("speed", 1.05))
+            raw_lang = body.get("lang") or body.get("language")
+            job_lang = (
+                str(raw_lang).strip()
+                if isinstance(raw_lang, str) and str(raw_lang).strip()
+                else None
+            )
             mode = str(body.get("mode", "queue")).lower()
             if mode not in ("queue", "interrupt"):
                 mode = "queue"
@@ -222,6 +230,7 @@ def make_handler(worker: TTSWorker, port: int):
                 generation_id=body.get("generation_id") or body.get("generationId"),
                 conversation_id=body.get("conversation_id")
                 or body.get("conversationId"),
+                lang=job_lang,
             )
             worker.enqueue(job)
             self._json(
