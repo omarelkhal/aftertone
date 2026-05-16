@@ -13,6 +13,11 @@ dependencies = [
     "tomli>=2.0.1; python_version < '3.11'",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
 [tool.setuptools]
 py-modules = []
 
