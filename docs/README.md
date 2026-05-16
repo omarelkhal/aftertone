@@ -1,9 +1,15 @@
 # GitHub Pages (`/docs`)
 
-Static landing site: open **`index.html`** in a browser locally, or publish as **GitHub Pages**. The page includes **meta description**, **Open Graph / Twitter** tags, **canonical URL**, **JSON-LD** (`SoftwareApplication`), and a short intro plus links to related **GitHub Topics** so previews and listings stay accurate for readers — not keyword stuffing.
+Static site for [aftertone on GitHub Pages](https://omarelkhal.github.io/aftertone/).
 
-**Wrong place?** If you only see **“Verified domains”** and “Add a domain”, you are in **your user account Settings → Pages**, not the repo. Open the **aftertone** repository → **Settings** (repo tab) → **Pages** in the left sidebar.
+| File | URL |
+|------|-----|
+| `index.html` | Home — overview, flow, quick start |
+| `docs.html` | Documentation — install, Cursor, daemon, config, troubleshooting |
+| `styles.css` | Shared styles |
 
-**Turn on Pages:** Repository **Settings → Pages → Build and deployment** → Source **Deploy from a branch** → Branch **`main`**, folder **`/docs`** → Save.
+**Publish:** Repository **Settings → Pages** → Source **Deploy from a branch** → Branch **`main`**, folder **`/docs`**.
 
-Site URL: **`https://omarelkhal.github.io/aftertone/`** (after the first successful deploy).
+**Preview locally:** open `index.html` or `docs.html` in a browser (relative links to `styles.css` work from the `docs/` folder).
+
+**Note:** Logo uses the GitHub raw URL because `img/` lives at repo root, not under `docs/`.

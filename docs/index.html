@@ -3,278 +3,178 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Aftertone: local text-to-speech after your AI coding agent replies. Cursor hooks, on-device Supertonic ONNX, ONNX Runtime, offline-friendly, privacy-preserving developer tools — open source." />
-  <meta name="keywords" content="Aftertone, text-to-speech, TTS, AI coding agents, coding agent, agentic coding, Cursor IDE, Cursor hooks, local-first, offline, privacy, ONNX, ONNX Runtime, on-device ML, developer tools, devtools, Supertonic, voice feedback, open source, Python" />
+  <meta name="description" content="Aftertone speaks a short local line after your AI coding agent replies. Cursor hooks, on-device Supertonic ONNX, private and fast." />
   <link rel="canonical" href="https://omarelkhal.github.io/aftertone/" />
-  <meta name="theme-color" content="#c4783a" />
-  <title>Aftertone — local TTS after AI coding agents reply | Cursor hooks &amp; ONNX</title>
-  <meta property="og:title" content="Aftertone — hear your coding agent after it answers" />
-  <meta property="og:description" content="Local-first text-to-speech for AI coding agents. Cursor afterAgentResponse hooks, Supertonic ONNX, no cloud TTS. Open source." />
+  <meta name="theme-color" content="#c96f2e" />
+  <title>Aftertone — local voice after your coding agent answers</title>
+  <meta property="og:title" content="Aftertone — hear your agent after it answers" />
+  <meta property="og:description" content="Local text-to-speech for coding agents. Cursor hooks, Supertonic ONNX on your machine. Open source." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://omarelkhal.github.io/aftertone/" />
   <meta property="og:image" content="https://raw.githubusercontent.com/omarelkhal/aftertone/main/img/aftertone-logo.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Aftertone — local TTS for coding agents" />
-  <meta name="twitter:description" content="Voice feedback after your agent replies. Cursor hooks, ONNX on-device, privacy-friendly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aftertone","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows","description":"Optional local text-to-speech after AI coding agents finish a reply. Integrates with Cursor via hooks; uses Supertonic ONNX and ONNX Runtime for on-device synthesis.","url":"https://omarelkhal.github.io/aftertone/","codeRepository":"https://github.com/omarelkhal/aftertone","license":"https://github.com/omarelkhal/aftertone/blob/main/LICENSE","isAccessibleForFree":true,"keywords":"text-to-speech, AI agents, Cursor, ONNX, local-first, privacy, developer tools, open source","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aftertone","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows","description":"Optional local text-to-speech after AI coding agents finish a reply. Cursor hooks and a localhost ONNX daemon.","url":"https://omarelkhal.github.io/aftertone/","codeRepository":"https://github.com/omarelkhal/aftertone","license":"https://github.com/omarelkhal/aftertone/blob/main/LICENSE","isAccessibleForFree":true}
   </script>
-  <style>
-    :root {
-      --bg: #faf7f2;
-      --fg: #1a1714;
-      --muted: #5c534a;
-      --accent: #c4783a;
-      --accent-dim: #9a5f2e;
-      --card: #fff;
-      --border: #e8e0d6;
-      --radius: 12px;
-      --font: ui-sans-serif, system-ui, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
-      --mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.55;
-    }
-    a { color: var(--accent-dim); text-decoration-thickness: 1px; text-underline-offset: 3px; }
-    a:hover { color: var(--accent); }
-    header {
-      border-bottom: 1px solid var(--border);
-      background: var(--card);
-    }
-    .wrap { max-width: 880px; margin: 0 auto; padding: 0 1.25rem; }
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      min-height: 3.5rem;
-      flex-wrap: wrap;
-    }
-    .brand { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; color: var(--fg); }
-    .nav-links { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.95rem; }
-    .hero {
-      padding: 2.75rem 0 2.25rem;
-      text-align: center;
-    }
-    .hero img {
-      max-width: min(420px, 92vw);
-      height: auto;
-      margin-bottom: 1.25rem;
-    }
-    .hero h1 {
-      font-size: clamp(1.65rem, 4vw, 2.15rem);
-      font-weight: 750;
-      letter-spacing: -0.03em;
-      margin: 0 0 0.75rem;
-      line-height: 1.2;
-    }
-    .hero p.lead {
-      font-size: 1.1rem;
-      color: var(--muted);
-      max-width: 36rem;
-      margin: 0 auto 1.5rem;
-    }
-    .cta-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
-    .btn {
-      display: inline-block;
-      padding: 0.55rem 1.1rem;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: 1px solid transparent;
-    }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-    .btn-primary:hover { filter: brightness(1.05); color: #fff; }
-    .btn-ghost {
-      background: var(--card);
-      border-color: var(--border);
-      color: var(--fg);
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent-dim); }
-    section { padding: 2rem 0; }
-    section h2 {
-      font-size: 1.15rem;
-      margin: 0 0 1rem;
-      letter-spacing: -0.02em;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1rem;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.1rem 1.2rem;
-    }
-    .card h3 { margin: 0 0 0.4rem; font-size: 1rem; }
-    .card p { margin: 0; font-size: 0.92rem; color: var(--muted); }
-    pre, code { font-family: var(--mono); font-size: 0.86rem; }
-    pre {
-      background: #1e1b18;
-      color: #f4eee6;
-      padding: 1rem 1.1rem;
-      border-radius: var(--radius);
-      overflow-x: auto;
-      margin: 0;
-      line-height: 1.45;
-    }
-    .pill {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--accent-dim);
-      border: 1px solid var(--border);
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-    }
-    .prose-muted {
-      color: var(--muted);
-      max-width: 44rem;
-      margin: 0 auto;
-      font-size: 0.98rem;
-    }
-    .topic-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
-      margin-top: 1rem;
-    }
-    .topic-tags a {
-      font-size: 0.82rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      text-decoration: none;
-      color: var(--accent-dim);
-    }
-    .topic-tags a:hover {
-      border-color: var(--accent);
-      color: var(--fg);
-    }
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem 0 2rem;
-      font-size: 0.88rem;
-      color: var(--muted);
-      text-align: center;
-    }
-  </style>
 </head>
 <body>
-  <header>
+  <header class="site-header">
     <div class="wrap nav">
-      <span class="brand">Aftertone</span>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Aftertone
+      </a>
       <nav class="nav-links" aria-label="Primary">
+        <a class="is-active" href="index.html">Home</a>
+        <a href="docs.html">Docs</a>
         <a href="https://github.com/omarelkhal/aftertone">GitHub</a>
-        <a href="https://github.com/omarelkhal/aftertone/blob/main/README.md">README</a>
-        <a href="https://github.com/omarelkhal/aftertone/blob/main/CONTRIBUTING.md">Contributing</a>
-        <a href="https://github.com/supertone-inc/supertonic">Supertonic</a>
+        <a class="nav-cta" href="docs.html#getting-started">Get started</a>
       </nav>
     </div>
   </header>
 
-  <div class="wrap hero">
-    <img
-      src="https://raw.githubusercontent.com/omarelkhal/aftertone/main/img/aftertone-logo.png"
-      alt="Aftertone logo"
-      width="480"
-      height="120"
-      loading="eager"
-      onerror="this.style.display='none'"
-    />
-    <h1>Hear a short line after your coding agent answers</h1>
-    <p class="lead">
-      On-device <strong>Supertonic</strong> ONNX through a tiny <strong>local HTTP daemon</strong> — models stay loaded, hooks stay fast, audio stays on your machine.
-    </p>
-    <p class="prose-muted" style="margin-top: -0.25rem;">
-      Built for <strong>AI coding agents</strong> and <strong>agentic coding</strong> workflows: <strong>Cursor</strong> hooks today, with a roadmap toward Claude Code, Codex, and other assistants. <strong>Local-first</strong>, offline-friendly <strong>text-to-speech</strong> on <strong>ONNX Runtime</strong> — a small developer utility for privacy-minded voice feedback without shipping your thread to a cloud TTS API.
-    </p>
-    <nav class="topic-tags" aria-label="Related GitHub topics">
-      <a href="https://github.com/topics/ai-agents">ai-agents</a>
-      <a href="https://github.com/topics/coding-agent">coding-agent</a>
-      <a href="https://github.com/topics/cursor">cursor</a>
-      <a href="https://github.com/topics/text-to-speech">text-to-speech</a>
-      <a href="https://github.com/topics/onnx">onnx</a>
-      <a href="https://github.com/topics/local-first">local-first</a>
-      <a href="https://github.com/topics/developer-tools">developer-tools</a>
-      <a href="https://github.com/topics/open-source">open-source</a>
-    </nav>
-    <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/omarelkhal/aftertone">View on GitHub</a>
-      <a class="btn btn-ghost" href="https://github.com/omarelkhal/aftertone/blob/main/README.md#quick-start">Quick start</a>
-    </div>
-  </div>
+  <main>
+    <div class="wrap hero">
+      <img
+        class="hero-logo"
+        src="https://raw.githubusercontent.com/omarelkhal/aftertone/main/img/aftertone-logo.png"
+        alt="Aftertone"
+        width="400"
+        height="100"
+        loading="eager"
+        onerror="this.style.display='none'"
+      />
+      <p class="hero-badge">Local · ONNX · Open source</p>
+      <h1>Hear a short line when your agent finishes</h1>
+      <p class="lead">
+        <strong>Aftertone</strong> plays a brief spoken summary after each reply — on your machine, through a tiny
+        <strong>localhost daemon</strong> and <strong>Supertonic</strong> models. No cloud text-to-speech API.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="docs.html#getting-started">Set up in 5 steps</a>
+        <a class="btn btn-ghost" href="https://github.com/omarelkhal/aftertone">View on GitHub</a>
+      </div>
 
-  <section>
-    <div class="wrap">
-      <span class="pill">Today</span>
-      <h2>What you get</h2>
-      <div class="cards">
-        <div class="card">
-          <h3>Cursor integration</h3>
-          <p><code>afterAgentResponse</code> can trigger optional TTS from reply text. Prefer a <code>&lt;spoken_summary&gt;</code> line written for speech.</p>
+      <div class="flow-strip flow-strip--linear" aria-label="How it works">
+        <div class="flow-step">
+          <span class="flow-step-num">1</span>
+          <h3>Agent replies</h3>
+          <p>Cursor runs your coding agent; the reply lands in the hook payload.</p>
         </div>
-        <div class="card">
-          <h3>Daemon + prepare</h3>
-          <p><code>speak_summary_prepare.py</code> builds JSON for <code>POST /say</code>; <code>tts_daemon.py</code> serves localhost and plays audio.</p>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-step">
+          <span class="flow-step-num">2</span>
+          <h3>Hook prepares text</h3>
+          <p>Prefers <code>&lt;spoken_summary&gt;</code>, else a short heuristic excerpt.</p>
         </div>
-        <div class="card">
-          <h3>Bootstrap</h3>
-          <p><code>bash scripts/bootstrap.sh</code> runs <code>uv sync</code> and pulls ONNX assets when <code>assets/onnx/</code> is missing.</p>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-step">
+          <span class="flow-step-num">3</span>
+          <h3>Daemon synthesizes</h3>
+          <p>Models stay loaded; <code>POST /say</code> stays fast.</p>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-step">
+          <span class="flow-step-num">4</span>
+          <h3>You hear it</h3>
+          <p>One concise line — glance at the screen less often.</p>
         </div>
       </div>
     </div>
-  </section>
 
-  <section style="background: var(--card); border-block: 1px solid var(--border);">
-    <div class="wrap">
-      <h2>Install</h2>
-      <pre><code>git clone https://github.com/omarelkhal/aftertone.git
+    <section class="alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill">Why Aftertone</span>
+          <h2>Built for long agent sessions</h2>
+          <p>Stay in flow when the model writes a wall of text. Listen for the gist while you read the details.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>Private by default</h3>
+            <p>Audio is synthesized locally with ONNX. Your thread is not sent to a hosted TTS service.</p>
+          </article>
+          <article class="card">
+            <h3>Fast hooks</h3>
+            <p>The heavy work lives in <code>tts_daemon.py</code>. Each hook only prepares text and posts JSON.</p>
+          </article>
+          <article class="card">
+            <h3>Cursor today, more soon</h3>
+            <p>Ships <code>afterAgentResponse</code> integration. Roadmap: Claude Code, Codex, and other adapters.</p>
+          </article>
+          <article class="card">
+            <h3>You control the voice</h3>
+            <p>Pick voice preset, language, speed, quiet hours, and how much fallback text is spoken.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill">Quick start</span>
+          <h2>From clone to first spoken line</h2>
+          <p>Full troubleshooting and config tables are on the <a href="docs.html">docs page</a>.</p>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Terminal</div>
+          <pre><code>git clone https://github.com/omarelkhal/aftertone.git
 cd aftertone
-bash scripts/bootstrap.sh</code></pre>
-      <p style="margin-top: 0.85rem; font-size: 0.92rem; color: var(--muted);">
-        Open the repo as your <strong>Cursor workspace root</strong> so project hooks load. See the README for daemon control, smoke tests, and diagnostics.
-      </p>
-    </div>
-  </section>
+bash scripts/bootstrap.sh
+cd py && uv run python tts_daemon_ctl.py start --repo-root ..
+bash ../py/test_speak_summary_pipeline.sh</code></pre>
+        </div>
+        <div class="callout callout-tip">
+          <strong>Cursor checklist</strong>
+          Open the <strong>repo root</strong> as the workspace, enable <strong>Hooks</strong>, trust the workspace, and confirm <code>.cursor/hooks.json</code> includes <code>"version": 1</code>.
+        </div>
+        <p style="text-align: center; margin-top: 1.5rem;">
+          <a class="btn btn-primary" href="docs.html">Read the full guide →</a>
+        </p>
+      </div>
+    </section>
 
-  <section>
-    <div class="wrap">
-      <span class="pill">Roadmap</span>
-      <h2>Not Cursor-only</h2>
-      <p style="color: var(--muted); max-width: 42rem;">
-        We want first-class paths for <strong>Claude Code / Claude Desktop</strong> and <strong>OpenAI Codex</strong>. If you want to help, read
-        <a href="https://github.com/omarelkhal/aftertone/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> and open a PR or design issue.
-      </p>
-    </div>
-  </section>
+    <section class="alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill">For agents</span>
+          <h2>Better summaries with <code>&lt;spoken_summary&gt;</code></h2>
+          <p>Agents can end replies with a short tag written for listening — not for the screen.</p>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Example (end of agent message)</div>
+          <pre><code>&lt;spoken_summary&gt;
+We fixed the daemon port mismatch by restarting after editing speak_summary.toml.
+&lt;/spoken_summary&gt;</code></pre>
+        </div>
+        <p style="color: var(--muted); font-size: 0.95rem; max-width: 40rem;">
+          Match the language in <code>speak_summary.toml</code> (<code>lang</code>). The hook does not translate.
+          See <a href="docs.html#spoken-summary">spoken summary rules</a>.
+        </p>
+      </div>
+    </section>
+  </main>
 
-  <footer>
+  <footer class="site-footer">
     <div class="wrap">
-      <p>
+      <nav class="topic-tags" aria-label="Topics">
+        <a href="https://github.com/topics/cursor">cursor</a>
+        <a href="https://github.com/topics/text-to-speech">text-to-speech</a>
+        <a href="https://github.com/topics/ai-agents">ai-agents</a>
+        <a href="https://github.com/topics/local-first">local-first</a>
+        <a href="https://github.com/topics/onnx">onnx</a>
+      </nav>
+      <p style="margin-top: 1.25rem;">
         <a href="https://github.com/omarelkhal/aftertone/blob/main/LICENSE">MIT</a>
-        · Supertonic-derived portions: <a href="https://github.com/omarelkhal/aftertone/blob/main/NOTICE">NOTICE</a>
+        · <a href="https://github.com/omarelkhal/aftertone/blob/main/NOTICE">NOTICE</a>
+        · <a href="https://github.com/supertone-inc/supertonic">Supertonic</a>
       </p>
-      <p style="margin-top: 0.5rem;">
-        GitHub Pages from <code>/docs</code> ·
-        <a href="https://github.com/omarelkhal/aftertone">github.com/omarelkhal/aftertone</a>
-      </p>
+      <p><a href="https://github.com/omarelkhal/aftertone">github.com/omarelkhal/aftertone</a></p>
     </div>
   </footer>
 </body>

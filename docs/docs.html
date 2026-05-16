@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Aftertone documentation: install, Cursor hooks, daemon control, configuration, troubleshooting, and spoken summaries." />
+  <link rel="canonical" href="https://omarelkhal.github.io/aftertone/docs.html" />
+  <meta name="theme-color" content="#c96f2e" />
+  <title>Docs — Aftertone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Aftertone
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a class="is-active" href="docs.html">Docs</a>
+        <a href="https://github.com/omarelkhal/aftertone">GitHub</a>
+        <a class="nav-cta" href="#getting-started">Get started</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-hero">
+    <div class="wrap">
+      <h1>Documentation</h1>
+      <p>Install Aftertone, wire Cursor hooks, control the daemon, and tune what gets spoken.</p>
+    </div>
+  </div>
+
+  <div class="wrap docs-layout">
+    <aside class="docs-sidebar" aria-label="On this page">
+      <nav>
+        <a href="#getting-started">Getting started</a>
+        <a href="#cursor">Cursor setup</a>
+        <a href="#daemon">Daemon commands</a>
+        <a href="#config">Configuration</a>
+        <a href="#spoken-summary">Spoken summaries</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#reference">Full reference</a>
+      </nav>
+    </aside>
+
+    <article class="docs-main">
+      <h1 id="getting-started">Getting started</h1>
+      <p class="docs-intro">
+        You need <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a>, a clone of this repo, ONNX weights under <code>assets/</code>, and the TTS daemon running before Cursor can speak.
+      </p>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-body">
+            <h3>Clone and bootstrap</h3>
+            <p>From your terminal, install Python deps and download Supertonic models if they are missing.</p>
+            <div class="code-block">
+              <div class="code-label">Terminal</div>
+              <pre><code>git clone https://github.com/omarelkhal/aftertone.git
+cd aftertone
+bash scripts/bootstrap.sh</code></pre>
+            </div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-body">
+            <h3>Start the TTS daemon</h3>
+            <p>The daemon loads ONNX models once and serves <code>POST /say</code> on localhost. Keep it running while you code.</p>
+            <div class="code-block">
+              <div class="code-label">Terminal</div>
+              <pre><code>cd py
+uv run python tts_daemon_ctl.py start --repo-root ..</code></pre>
+            </div>
+            <p>Check health: <code>uv run python tts_daemon_ctl.py status --repo-root ..</code></p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-body">
+            <h3>Smoke-test without Cursor</h3>
+            <p>Confirms assets, audio output, and the prepare → daemon path.</p>
+            <div class="code-block">
+              <div class="code-label">From repo root</div>
+              <pre><code>bash py/test_speak_summary_pipeline.sh</code></pre>
+            </div>
+            <p>You should see <code>OK:</code> and hear a short test phrase.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-body">
+            <h3>Open Aftertone in Cursor</h3>
+            <p>Use the <strong>repository root</strong> as the workspace folder so project hooks and <code>.cursor/hooks.json</code> load.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-body">
+            <h3>Trigger a real agent reply</h3>
+            <p>Ask the agent something substantive. You should hear one short line after it finishes. If not, see <a href="#troubleshooting">Troubleshooting</a>.</p>
+          </div>
+        </li>
+      </ol>
+
+      <h2 id="cursor">Cursor setup</h2>
+      <div class="cards" style="margin-bottom: 1.25rem;">
+        <div class="card">
+          <h3>Hooks enabled</h3>
+          <p>Cursor <strong>Settings → Hooks</strong> should show no errors for this project’s <code>.cursor/hooks.json</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Trusted workspace</h3>
+          <p>Project hooks do not run in restricted mode. Trust the folder when Cursor asks.</p>
+        </div>
+        <div class="card">
+          <h3><code>version: 1</code></h3>
+          <p><code>.cursor/hooks.json</code> must include <code>"version": 1</code> (numeric) or hooks fail to load.</p>
+        </div>
+      </div>
+
+      <p><strong>What runs:</strong> <code>afterAgentResponse</code> → <code>speak_summary.sh</code> → <code>speak_summary_prepare.py</code> → <code>POST /say</code> on the daemon. The hook uses inline reply text from the payload (not the transcript file).</p>
+
+      <div class="callout callout-tip">
+        <strong>Verify Cursor called the hook</strong>
+        After one agent reply: <code>bash py/diagnose_speak_hooks.sh</code> or inspect <code>.cursor/hooks/state/hook_payload_trace.jsonl</code> for <code>afterAgentResponse</code> with <code>inline_after_response_ok: true</code>.
+      </div>
+
+      <h2 id="daemon">Daemon commands</h2>
+      <p>Run from <code>py/</code> with <code>--repo-root ..</code> (one level up to the repo root):</p>
+      <div class="code-block">
+        <pre><code>cd py
+uv run python tts_daemon_ctl.py start --repo-root ..
+uv run python tts_daemon_ctl.py status --repo-root ..
+uv run python tts_daemon_ctl.py restart --repo-root ..
+uv run python tts_daemon_ctl.py stop --repo-root ..</code></pre>
+      </div>
+
+      <div class="table-wrap" style="margin-top: 1rem;">
+        <table>
+          <thead>
+            <tr><th>Change in TOML</th><th>Need restart?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>speed</code>, <code>lang</code>, <code>total_step</code>, <code>mode</code>, <code>quiet_hours</code>, text limits, heuristics</td><td>No — read each hook run</td></tr>
+            <tr><td><code>port</code>, <code>onnx_dir</code>, <code>voice_*</code>, <code>use_gpu</code></td><td><strong>Yes</strong> — <code>restart</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-warn">
+        <strong>Port mismatch</strong>
+        While the daemon runs, the hook posts to the port in <code>.cursor/hooks/state/tts-daemon.port</code>. If you change <code>port</code> in TOML without restarting, speech may go to the wrong port. Run <code>restart</code> after changing <code>port</code>.
+      </div>
+
+      <h2 id="config">Configuration</h2>
+      <p>Edit <a href="https://github.com/omarelkhal/aftertone/blob/main/.cursor/hooks/speak_summary.toml"><code>.cursor/hooks/speak_summary.toml</code></a>. Common knobs:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Key</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>enabled</code></td><td>Master switch — <code>false</code> silences all speech</td></tr>
+            <tr><td><code>lang</code></td><td>ONNX language and the language agents should use in <code>&lt;spoken_summary&gt;</code> (no auto-translation)</td></tr>
+            <tr><td><code>voice_type</code> / <code>voice_style</code></td><td>Preset id (e.g. M1, F2) or path to voice JSON</td></tr>
+            <tr><td><code>speed</code></td><td>Playback speed (1.0 = baseline)</td></tr>
+            <tr><td><code>quiet_hours</code></td><td>e.g. <code>22:00-08:00</code> — no speech in that window (local clock)</td></tr>
+            <tr><td><code>spoken_summary_max_chars</code></td><td>Cap for tag text (default 360)</td></tr>
+            <tr><td><code>only_speak_spoken_summary</code></td><td><code>true</code> = never use heuristic fallback</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>After changing <code>lang</code>, sync the Cursor rule from repo root:</p>
+      <pre><code>uv run --directory py python sync_spoken_rule_lang.py</code></pre>
+
+      <h2 id="spoken-summary">Spoken summaries</h2>
+      <p>Best quality comes from a deliberate tag at the end of the agent message:</p>
+      <pre><code>&lt;spoken_summary&gt;
+Short line written for listening, in the same language as lang in speak_summary.toml.
+&lt;/spoken_summary&gt;</code></pre>
+      <p><strong>Without the tag,</strong> prepare may use one or two heuristic sentences (shorter when the reply is mostly code fences). Set <code>only_speak_spoken_summary = true</code> if you never want English (or other) fallback when <code>lang</code> is not English.</p>
+      <p>Rules for agents live in <a href="https://github.com/omarelkhal/aftertone/blob/main/.cursor/rules/spoken-summary.mdc"><code>.cursor/rules/spoken-summary.mdc</code></a>.</p>
+
+      <h2 id="troubleshooting">Troubleshooting</h2>
+      <div class="cards">
+        <article class="card">
+          <h3>Nothing speaks</h3>
+          <p>Run <code>bash py/test_speak_summary_pipeline.sh</code>. Check daemon <code>status</code>, Cursor Hooks panel, trusted workspace, and <code>tail .cursor/hooks/state/speak_summary-hook.log</code>.</p>
+        </article>
+        <article class="card">
+          <h3>Wrong language or accent</h3>
+          <p>Match <code>lang</code> in TOML and write <code>&lt;spoken_summary&gt;</code> in that language. Run <code>sync_spoken_rule_lang.py</code> after changing <code>lang</code>.</p>
+        </article>
+        <article class="card">
+          <h3>TOML change had no effect</h3>
+          <p>Voice, port, GPU, and ONNX path need <code>tts_daemon_ctl.py restart</code>. Speed and lang apply per request without restart.</p>
+        </article>
+        <article class="card">
+          <h3>Quiet hours</h3>
+          <p>Clear <code>quiet_hours</code> or test with <code>SPEAK_SUMMARY_IGNORE_QUIET=1</code> in the environment.</p>
+        </article>
+      </div>
+
+      <h2 id="reference">Full reference</h2>
+      <p>Every TOML key, language list, and log file paths:</p>
+      <ul style="color: var(--muted); line-height: 1.8;">
+        <li><a href="https://github.com/omarelkhal/aftertone/blob/main/.cursor/hooks/README.md">.cursor/hooks/README.md</a> — hook + daemon reference</li>
+        <li><a href="https://github.com/omarelkhal/aftertone/blob/main/AGENTS.md">AGENTS.md</a> — short agent-oriented digest</li>
+        <li><a href="https://github.com/omarelkhal/aftertone/blob/main/py/README.md">py/README.md</a> — Python env and CLI</li>
+        <li><a href="https://github.com/omarelkhal/aftertone/blob/main/README.md">README.md</a> — project overview</li>
+      </ul>
+    </article>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p><a href="index.html">← Home</a> · <a href="https://github.com/omarelkhal/aftertone">GitHub</a></p>
+    </div>
+  </footer>
+</body>
+</html>
