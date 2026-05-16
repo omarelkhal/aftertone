@@ -1,5 +1,7 @@
 ## Aftertone — agent map
 
+**This repository** (`https://github.com/omarelkhal/aftertone`) is the **default project** for Cursor/agent work (spoken TTS, hooks, daemon). Do not confuse it with the upstream **`supertone-inc/supertonic`** clone unless the user is contributing to Supertonic itself.
+
 - **Goal:** post-reply **local TTS** for coding agents (Cursor today; Claude & Codex adapters tracked in [CONTRIBUTING.md](CONTRIBUTING.md)).
 - **`.cursor/hooks.json`** — Cursor adapter; must include `"version": 1`.
 - **`.cursor/hooks/`** — `speak_summary.sh`, `speak_summary.toml`, `README.md` (full TOML reference), `hook_payload_trace.sh`.
