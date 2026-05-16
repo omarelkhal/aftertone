@@ -159,14 +159,38 @@ img {
 
 /* Hero */
 .hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 3rem 0 2.5rem;
   text-align: center;
 }
 
 .hero-logo {
+  display: block;
   max-width: min(400px, 88vw);
+  width: 100%;
+  height: auto;
   margin: 0 auto 1.5rem;
   filter: drop-shadow(0 8px 24px rgba(20, 18, 16, 0.08));
+}
+
+.hero-install {
+  width: min(100%, 42rem);
+  margin: 0 auto 1.5rem;
+  text-align: left;
+}
+
+.hero-install .code-block {
+  margin-bottom: 0.75rem;
+}
+
+.hero-install-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.5;
+  text-align: center;
 }
 
 .hero-badge {

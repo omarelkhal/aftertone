@@ -32,7 +32,7 @@
         <a class="is-active" href="index.html">Home</a>
         <a href="docs.html">Docs</a>
         <a href="https://github.com/omarelkhal/aftertone">GitHub</a>
-        <a class="nav-cta" href="docs.html#getting-started">Get started</a>
+        <a class="nav-cta" href="#install">Install</a>
       </nav>
     </div>
   </header>
@@ -54,8 +54,20 @@
         <strong>Aftertone</strong> plays a brief spoken summary after each reply — on your machine, through a tiny
         <strong>localhost daemon</strong> and <strong>Supertonic</strong> models. No cloud text-to-speech API.
       </p>
+
+      <div class="hero-install" id="install">
+        <div class="code-block">
+          <div class="code-label">One command — clone, deps, models, daemon</div>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon</code></pre>
+        </div>
+        <p class="hero-install-note">
+          Installs to <code>~/aftertone</code>. Then open that folder in Cursor (trusted workspace, Hooks on) and run
+          <code>/aftertone-on</code> in Agent chat.
+        </p>
+      </div>
+
       <div class="cta-row">
-        <a class="btn btn-primary" href="docs.html#getting-started">Set up in 5 steps</a>
+        <a class="btn btn-primary" href="docs.html#getting-started">Docs &amp; troubleshooting</a>
         <a class="btn btn-ghost" href="https://github.com/omarelkhal/aftertone">View on GitHub</a>
       </div>
 
@@ -111,27 +123,6 @@
             <p>In Cursor Agent chat, use <code>/aftertone-voice</code>, <code>/aftertone-lang</code>, and more — no hand-editing TOML.</p>
           </article>
         </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="wrap">
-        <div class="section-head">
-          <span class="pill">Quick start</span>
-          <h2>Install in one line</h2>
-          <p>Defaults to <code>~/aftertone</code>. Slash commands, manual install, and troubleshooting are on the <a href="docs.html">docs page</a>.</p>
-        </div>
-        <div class="code-block">
-          <div class="code-label">Terminal</div>
-          <pre><code>curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon</code></pre>
-        </div>
-        <div class="callout callout-tip">
-          <strong>Cursor checklist</strong>
-          Open the install folder as the workspace, enable <strong>Hooks</strong>, trust the workspace, then in Agent chat run <code>/aftertone-status</code> and <code>/aftertone-on</code>.
-        </div>
-        <p style="text-align: center; margin-top: 1.5rem;">
-          <a class="btn btn-primary" href="docs.html">Read the full guide →</a>
-        </p>
       </div>
     </section>
 

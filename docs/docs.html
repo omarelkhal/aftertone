@@ -23,7 +23,7 @@
         <a href="index.html">Home</a>
         <a class="is-active" href="docs.html">Docs</a>
         <a href="https://github.com/omarelkhal/aftertone">GitHub</a>
-        <a class="nav-cta" href="#getting-started">Get started</a>
+        <a class="nav-cta" href="#getting-started">Install</a>
       </nav>
     </div>
   </header>
@@ -31,7 +31,7 @@
   <div class="page-hero">
     <div class="wrap">
       <h1>Documentation</h1>
-      <p>Install Aftertone, wire Cursor hooks, control the daemon, and tune what gets spoken.</p>
+      <p>One install command, then open Aftertone in Cursor. Slash commands, daemon control, and troubleshooting below.</p>
     </div>
   </div>
 
@@ -52,57 +52,33 @@
     <article class="docs-main">
       <h1 id="getting-started">Getting started</h1>
       <p class="docs-intro">
-        You need <strong>git</strong>, <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a> (or <code>--install-uv</code> on the installer), ONNX weights under <code>assets/</code>, and the TTS daemon running before Cursor can speak. Change settings with <strong>slash commands</strong> in Agent chat — not by editing TOML by hand.
+        Run <strong>one command</strong> below (needs <strong>git</strong>). It installs <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a> if needed, clones to <code>~/aftertone</code>, downloads models, and starts the daemon. Then open that folder in Cursor. Settings: <strong>slash commands</strong> in Agent chat — not hand-edited TOML.
       </p>
 
-      <ol class="steps">
-        <li class="step">
-          <div class="step-body">
-            <h3>One-line install (recommended)</h3>
-            <p>Clones to <code>~/aftertone</code> by default, runs <code>uv sync</code>, and downloads Supertonic models.</p>
-            <div class="code-block">
-              <div class="code-label">Terminal</div>
-              <pre><code>curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon</code></pre>
-            </div>
-            <p style="margin-top: 0.75rem;">Manual clone: <code>git clone … && bash scripts/bootstrap.sh</code>. Add hooks to another repo: <code>bash -s -- --into .</code>. See <a href="https://github.com/omarelkhal/aftertone/blob/main/scripts/README.md">scripts/README.md</a>.</p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="step-body">
-            <h3>Start the TTS daemon</h3>
-            <p>The daemon loads ONNX models once and serves <code>POST /say</code> on localhost. Keep it running while you code.</p>
-            <div class="code-block">
-              <div class="code-label">Terminal</div>
-              <pre><code>cd py
-uv run python tts_daemon_ctl.py start --repo-root ..</code></pre>
-            </div>
-            <p>Check health: <code>uv run python tts_daemon_ctl.py status --repo-root ..</code></p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="step-body">
-            <h3>Smoke-test without Cursor</h3>
-            <p>Confirms assets, audio output, and the prepare → daemon path.</p>
-            <div class="code-block">
-              <div class="code-label">From repo root</div>
-              <pre><code>bash py/test_speak_summary_pipeline.sh</code></pre>
-            </div>
-            <p>You should see <code>OK:</code> and hear a short test phrase.</p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="step-body">
-            <h3>Open Aftertone in Cursor</h3>
-            <p>Use the <strong>repository root</strong> as the workspace folder so project hooks and <code>.cursor/hooks.json</code> load.</p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="step-body">
-            <h3>Trigger a real agent reply</h3>
-            <p>Run <code>/aftertone-on</code>, ask something substantive, and listen for one short line after the reply. If not, see <a href="#troubleshooting">Troubleshooting</a>.</p>
-          </div>
-        </li>
-      </ol>
+      <div class="code-block" style="margin-bottom: 1.25rem;">
+        <div class="code-label">Install</div>
+        <pre><code>curl -fsSL https://raw.githubusercontent.com/omarelkhal/aftertone/main/scripts/install.sh | bash -s -- --install-uv --start-daemon</code></pre>
+      </div>
+
+      <h3>Then in Cursor</h3>
+      <ul style="color: var(--muted); line-height: 1.75; margin-bottom: 2rem;">
+        <li>Open <code>~/aftertone</code> as the <strong>workspace root</strong>.</li>
+        <li>Enable <strong>Hooks</strong> and <strong>trust</strong> the workspace.</li>
+        <li>Agent chat: <code>/aftertone-status</code>, then <code>/aftertone-on</code>.</li>
+        <li>Ask the agent something — listen for one short line after the reply.</li>
+      </ul>
+
+      <details style="margin-bottom: 2rem;">
+        <summary style="cursor: pointer; font-weight: 600;">Optional: manual clone, other projects, smoke test</summary>
+        <p style="margin-top: 0.75rem; color: var(--muted);">
+          Manual: <code>git clone … && bash scripts/bootstrap.sh</code> and
+          <code>tts_daemon_ctl.py start</code>.
+          Other repo: <code>bash -s -- --into .</code>.
+          Verify: <code>bash py/test_speak_summary_pipeline.sh</code>.
+          <a href="https://github.com/omarelkhal/aftertone/blob/main/scripts/README.md">scripts/README.md</a>.
+        </p>
+      </details>
+
 
       <h2 id="slash-commands">Slash commands (Cursor)</h2>
       <p>Open the Aftertone folder as the workspace root. In <strong>Agent</strong> chat, type <code>/</code> and pick an <code>aftertone-</code> command. The agent runs the repo scripts for you — <strong>do not</strong> hand-edit <code>speak_summary.toml</code> for everyday changes.</p>
