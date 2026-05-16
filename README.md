@@ -54,6 +54,22 @@ Spoken summaries use **`enabled`** in [`.cursor/hooks/speak_summary.toml`](.curs
 
 **In Cursor:** open this repo as the workspace root → **Terminal → Run Task…** → **Aftertone: toggle spoken TTS** (tasks live in [`.vscode/tasks.json`](.vscode/tasks.json)). Bind a keyboard shortcut via **Keyboard Shortcuts** if you want one key to flip it.
 
+### Control with Cursor slash commands
+
+Project commands live in [`.cursor/commands/`](.cursor/commands/). In **Agent** chat, type `/` and pick an **aftertone-** command. Each command tells the agent to run a fixed script (not hand-edit TOML).
+
+| Command | What it does |
+|---------|----------------|
+| `/aftertone-toggle` | Flip spoken TTS on/off |
+| `/aftertone-on` / `/aftertone-off` | Force on or off |
+| `/aftertone-status` | Show TOML settings + daemon status |
+| `/aftertone-lang` | Set `lang` and sync [spoken-summary rule](.cursor/rules/spoken-summary.mdc) |
+| `/aftertone-speed` | Set playback speed |
+| `/aftertone-mode` | Set `queue` or `interrupt` |
+| `/aftertone-voice` | Set voice preset (restarts daemon with `--restart`) |
+
+CLI equivalents (repo root): `uv run --directory py python speak_summary_config.py status` and `set lang|speed|mode|voice …`. See [py/README.md](py/README.md).
+
 Turning **`enabled`** off only stops new `/say` requests; the daemon may still be running. To unload models and free resources: `cd py && uv run python tts_daemon_ctl.py stop --repo-root ..`.
 
 Full TOML reference: [`.cursor/hooks/README.md`](.cursor/hooks/README.md).

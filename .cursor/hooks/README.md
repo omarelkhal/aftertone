@@ -14,7 +14,19 @@ cd py && uv run python speak_summary_toggle.py toggle   # or: on | off | status
 
 **In the IDE:** **Terminal → Run Task…** → **Aftertone: toggle spoken TTS** (see [`.vscode/tasks.json`](../../.vscode/tasks.json)). Bind a shortcut under **Keyboard Shortcuts** → search `Tasks: Run Task` or assign a key to that task name.
 
-Cursor does not ship a dedicated Aftertone status-bar widget; this task + optional keybinding is the lightweight equivalent. Turning TTS off does not stop the daemon; use `tts_daemon_ctl.py stop` if you want silence and no loaded models.
+**Slash commands (Agent chat):** [`../commands/`](../commands/) — type `/aftertone-toggle`, `/aftertone-lang`, `/aftertone-voice`, etc. The agent runs `speak_summary_toggle.py` or `speak_summary_config.py` for you. Tasks are better for a silent one-key flip; slash commands are better for “set language to French” with a short chat instruction.
+
+**Configure lang / speed / mode / voice** (hook reads on next reply; voice needs daemon restart):
+
+```bash
+uv run --directory py python speak_summary_config.py status
+uv run --directory py python speak_summary_config.py set lang fr
+uv run --directory py python speak_summary_config.py set speed 1.1
+uv run --directory py python speak_summary_config.py set mode interrupt
+uv run --directory py python speak_summary_config.py set voice M1 --restart
+```
+
+Cursor does not ship a dedicated Aftertone status-bar widget; tasks + slash commands cover most control. Turning TTS off does not stop the daemon; use `tts_daemon_ctl.py stop` if you want silence and no loaded models.
 
 ---
 

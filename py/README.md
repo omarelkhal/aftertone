@@ -20,8 +20,9 @@ After each assistant message, a [Cursor **`afterAgentResponse`** hook](https://c
 2. **Hook:** [.cursor/hooks/speak_summary.sh](../.cursor/hooks/speak_summary.sh) — reads hook JSON (uses inline `text` from `afterAgentResponse`), runs [speak_summary_prepare.py](speak_summary_prepare.py), `POST`s JSON to `http://127.0.0.1:<port>/say`.
 3. **Register:** [.cursor/hooks.json](../.cursor/hooks.json) — `afterAgentResponse` → `speak_summary.sh` with matcher `AgentResponse` (not `afterAgentThought`). When the workspace is **`py/`** only, use [py/.cursor/hooks.json](.cursor/hooks.json) if present. State, logs, and TOML stay under **repo** `.cursor/hooks/`.
 4. **On / off (spoken summaries):** `uv run python speak_summary_toggle.py on|off|toggle|status` from `py/` (or `uv run --directory py …` from repo root). Sets `enabled` in `speak_summary.toml`; applies on the next reply without restarting the daemon. Cursor tasks: [`.vscode/tasks.json`](../.vscode/tasks.json). See [Turn spoken TTS on or off](../README.md#turn-spoken-tts-on-or-off) in the repo README.
-5. **Fully disable the hook:** remove the `afterAgentResponse` entry from `hooks.json` (rare; prefer `enabled = false`).
-6. **Spoken-summary rule `lang`:** after changing **`lang`** in the TOML, from **repo root** run `uv run --directory py python sync_spoken_rule_lang.py` so [`.cursor/rules/spoken-summary.mdc`](../.cursor/rules/spoken-summary.mdc) shows the same code in the agent prompt (Cursor rules are static; they do not read TOML at runtime).
+5. **Config CLI:** [speak_summary_config.py](speak_summary_config.py) — `status`, `voices`, `set lang|speed|mode|voice`. Example from repo root: `uv run --directory py python speak_summary_config.py set lang en`. Cursor slash commands in [`.cursor/commands/`](../.cursor/commands/) call these scripts.
+6. **Fully disable the hook:** remove the `afterAgentResponse` entry from `hooks.json` (rare; prefer `enabled = false`).
+7. **Spoken-summary rule `lang`:** after changing **`lang`** in the TOML, from **repo root** run `uv run --directory py python sync_spoken_rule_lang.py` so [`.cursor/rules/spoken-summary.mdc`](../.cursor/rules/spoken-summary.mdc) shows the same code in the agent prompt (Cursor rules are static; they do not read TOML at runtime).
 
 **Daemon CLI** (from `cd py`):
 
