@@ -8,6 +8,8 @@
 
 One daemon, thin adapters per tool — **Cursor ships today**; **Claude Code**, **Codex**, and **OpenCode** are on the roadmap. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md) and the **Adapter research** issue template.
 
+☕ **[Support development](https://buymeacoffee.com/elkhalomar)** on Buy Me a Coffee — helps maintain Aftertone and new agent adapters.
+
 ## Works with
 
 <p align="center">
@@ -154,6 +156,10 @@ For **vibe coding**, write a hybrid pair-programmer briefing: what happened, why
 | [`.cursor/hooks/speak_summary.toml`](.cursor/hooks/speak_summary.toml) | On-disk config (updated by slash commands and install). |
 | [`.cursor/rules/spoken-summary.mdc`](.cursor/rules/spoken-summary.mdc) | When/how agents emit `<spoken_summary>`; **match TOML `lang`**. |
 | **[`AGENTS.md`](AGENTS.md)** | Agent-oriented digest (flow, verify hooks, caps, “nothing speaks”). |
+
+## Support
+
+If Aftertone saves you from reading every agent wall of text, consider **[buying me a coffee](https://buymeacoffee.com/elkhalomar)**. Tips fund maintenance, docs, and adapters (Claude Code, Codex, OpenCode). Code contributions are always welcome too — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 
