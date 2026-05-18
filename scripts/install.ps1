@@ -92,6 +92,14 @@ function Clone-OrUpdate {
         }
         $ErrorActionPreference = $gitEa
     } else {
+        if (Test-Path $dir) {
+            Write-Host "==> install: removing incomplete folder at $dir…"
+            Remove-Item -Recurse -Force $dir -ErrorAction SilentlyContinue
+            if (Test-Path $dir) {
+                $ErrorActionPreference = $gitEa
+                Write-Error "install: could not remove $dir (close Cursor/terminals using it), then re-run."
+            }
+        }
         Write-Host "==> install: cloning $RepoUrl → $dir ($Branch)…"
         $parent = Split-Path $dir -Parent
         if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
