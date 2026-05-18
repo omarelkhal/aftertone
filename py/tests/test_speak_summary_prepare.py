@@ -9,7 +9,7 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parents[1] / "speak_summary_prepare.py"
 
 
-def run_prepare(tmp_path, text, config=""):
+def run_prepare(tmp_path, text, config="", *, hook_extra=None):
     repo = tmp_path / "repo"
     hooks = repo / ".cursor" / "hooks"
     hooks.mkdir(parents=True)
@@ -25,6 +25,8 @@ def run_prepare(tmp_path, text, config=""):
         "generation_id": "gen-1",
         "conversation_id": "conv-1",
     }
+    if hook_extra:
+        payload.update(hook_extra)
     env = os.environ.copy()
     env["AFTERTONE_REPO"] = str(repo)
     env["SPEAK_SUMMARY_IGNORE_QUIET"] = "1"
@@ -92,6 +94,27 @@ def test_heuristic_max_chars_clamps_long_sentence(tmp_path):
 
     assert out["text"] == "Implemented a very long spoken summary..."
     assert len(out["text"]) <= 48
+
+
+def test_transcript_fallback_when_inline_lacks_spoken_tag(tmp_path, monkeypatch):
+    transcript = tmp_path / "thread.jsonl"
+    transcript.write_text(
+        json.dumps(
+            {
+                "role": "assistant",
+                "content": "Visible prose.\n<spoken_summary>Spoken from transcript!!</spoken_summary>",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    out = run_prepare(
+        tmp_path,
+        "Visible prose only in hook inline — tag omitted from hook JSON.",
+        "only_speak_spoken_summary = true\n",
+        hook_extra={"transcript_path": str(transcript)},
+    )
+    assert out["text"] == "Spoken from transcript!!"
 
 
 def test_only_speak_spoken_summary_suppresses_heuristic_fallback(tmp_path):

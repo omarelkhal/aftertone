@@ -37,12 +37,18 @@ log() {
   echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") $*" >>"${LOG}"
 }
 
-HOOK_JSON="$(cat || true)"
+# Do not store hook JSON in a bash variable — backticks, $, and quotes corrupt the payload.
+HOOK_STDIN="$(mktemp "${STATE_DIR}/hook_stdin.XXXXXX.json")"
+cat >"${HOOK_STDIN}" || true
 VENV_PY=""
 if VENV_PY="$(aftertone_venv_python "${PY}")"; then
-  printf '%s' "${HOOK_JSON}" | "${VENV_PY}" "${PY}/hook_payload_trace.py" "${STATE_DIR}/hook_payload_trace.jsonl" 2>/dev/null || true
+  "${VENV_PY}" "${PY}/hook_stdin_normalize.py" "${HOOK_STDIN}" 2>/dev/null || true
 fi
-log "hook_invoked hook_json_bytes=${#HOOK_JSON}"
+HOOK_BYTES="$(wc -c <"${HOOK_STDIN}" | tr -d ' \n\r')"
+if VENV_PY="$(aftertone_venv_python "${PY}")"; then
+  <"${HOOK_STDIN}" "${VENV_PY}" "${PY}/hook_payload_trace.py" "${STATE_DIR}/hook_payload_trace.jsonl" 2>/dev/null || true
+fi
+log "hook_invoked hook_json_bytes=${HOOK_BYTES}"
 
 read_port() {
   local toml="${REPO}/.cursor/hooks/speak_summary.toml"
@@ -71,15 +77,15 @@ run_prepare() {
   : >"${PREP_ERR}"
   local vpy=""
   if vpy="$(aftertone_venv_python "${PY}")"; then
-    printf '%s' "${HOOK_JSON}" | "${vpy}" "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
+    <"${HOOK_STDIN}" "${vpy}" "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
     return $?
   fi
   if command -v uv >/dev/null 2>&1; then
-    printf '%s' "${HOOK_JSON}" | (cd "${PY}" && uv run python speak_summary_prepare.py) 2>>"${PREP_ERR}"
+    <"${HOOK_STDIN}" bash -c "cd \"${PY}\" && uv run python speak_summary_prepare.py" 2>>"${PREP_ERR}"
     return $?
   fi
   if command -v python3 >/dev/null 2>&1; then
-    printf '%s' "${HOOK_JSON}" | PYTHONPATH="${PY}" python3 "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
+    <"${HOOK_STDIN}" env PYTHONPATH="${PY}" python3 "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
     return $?
   fi
   log "prepare_skip no_python venv_missing=${PY}/.venv uv_missing=1"
@@ -107,15 +113,26 @@ ensure_daemon() {
 post_say() {
   local port="$1"
   local payload="$2"
-  local tmp
+  local tmp vpy http_code
   tmp="$(mktemp "${STATE_DIR}/say_payload.XXXXXX.json")"
   printf '%s' "${payload}" >"${tmp}"
-  if ! curl -fsS -m 3 -X POST "http://127.0.0.1:${port}/say" \
-    -H "Content-Type: application/json" \
-    --data-binary @"${tmp}" >/dev/null 2>&1; then
-    log "post_say_failed port=${port}"
+  if [[ -f "${PY}/post_say_hook.py" ]] && vpy="$(aftertone_venv_python "${PY}")"; then
+    http_code="$("${vpy}" "${PY}/post_say_hook.py" "${port}" "${tmp}" 2>/dev/null || true)"
+    if [[ "${http_code}" == "202" ]] || [[ "${http_code}" == "200" ]]; then
+      rm -f "${tmp}"
+      return 0
+    fi
+  elif command -v curl >/dev/null 2>&1; then
+    if curl -fsS -m 30 -X POST "http://127.0.0.1:${port}/say" \
+      -H "Content-Type: application/json" \
+      --data-binary @"${tmp}" >/dev/null 2>&1; then
+      rm -f "${tmp}"
+      return 0
+    fi
   fi
+  log "post_say_failed port=${port} http=${http_code:-none}"
   rm -f "${tmp}"
+  return 1
 }
 
 PAYLOAD="$(run_prepare || true)"
@@ -127,11 +144,21 @@ fi
 if [[ "${PAYLOAD}" == "{}" ]] || [[ -z "${PAYLOAD}" ]]; then
   if [[ -s "${PREP_ERR}" ]]; then
     log "prepare_stderr_tail $(tail -c 400 "${PREP_ERR}" | tr '\n' ' ')"
-  elif [[ "${#HOOK_JSON}" -le 2 ]]; then
+  elif [[ "${HOOK_BYTES:-0}" -le 2 ]]; then
     log "prepare_skip empty_stdin (Cursor did not pass hook JSON?)"
   else
-    log "prepare_skip no_text (no transcript_path, transcripts off, quiet_hours, below min_chars, or no assistant text — check speak_summary.toml and Cursor transcript settings)"
+    cp "${HOOK_STDIN}" "${STATE_DIR}/last-hook-skipped.json" 2>/dev/null || true
+    skip_detail=""
+    if vpy="$(aftertone_venv_python "${PY}")"; then
+      skip_detail="$("${vpy}" "${PY}/hook_skip_diag.py" "${HOOK_STDIN}" 2>/dev/null || true)"
+    fi
+    if [[ -n "${skip_detail}" ]]; then
+      log "prepare_skip no_text ${skip_detail}"
+    else
+      log "prepare_skip no_text (check speak_summary.toml: enabled, only_speak_spoken_summary, quiet_hours)"
+    fi
   fi
+  rm -f "${HOOK_STDIN}"
   exit 0
 fi
 
@@ -140,7 +167,11 @@ log "prepare_ok payload_chars=${#PAYLOAD}"
 PORT="$(read_port)"
 ensure_daemon "${PORT}"
 PORT="$(read_port)"
-post_say "${PORT}" "${PAYLOAD}"
-log "post_say_done port=${PORT}"
+if post_say "${PORT}" "${PAYLOAD}"; then
+  log "post_say_done port=${PORT}"
+else
+  log "post_say_failed_after_prepare port=${PORT}"
+fi
 
+rm -f "${HOOK_STDIN}"
 exit 0

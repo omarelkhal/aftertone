@@ -29,7 +29,32 @@ Write-Host "==> repair: enable TTS + spoken-summary rule..."
 Push-Location (Join-Path $Install "py")
 & uv run python speak_summary_toggle.py on
 & uv run python sync_spoken_rule_lang.py
+# Tag-only mode skips speech when Cursor hook JSON has no <spoken_summary> (common on Windows).
+& uv run python -c @"
+from pathlib import Path
+p = Path(r'$Install') / '.cursor' / 'hooks' / 'speak_summary.toml'
+text = p.read_text(encoding='utf-8')
+if 'only_speak_spoken_summary = true' in text:
+    p.write_text(text.replace('only_speak_spoken_summary = true', 'only_speak_spoken_summary = false'), encoding='utf-8')
+    print('set only_speak_spoken_summary = false (heuristic fallback when tag missing in hook payload)')
+"@
 Pop-Location
+$wrapper = Join-Path $env:USERPROFILE ".cursor\hooks\aftertone-speak_summary.cmd"
+$wrapperSrc = Join-Path $Install "scripts\cursor-global\aftertone-speak_summary.cmd"
+if (Test-Path $wrapperSrc) { Copy-Item $wrapperSrc $wrapper -Force }
+$hooksJsonPath = Join-Path $env:USERPROFILE ".cursor\hooks.json"
+$hooksObj = @{
+    version = 1
+    hooks = @{
+        afterAgentResponse = @(
+            @{
+                command = "cmd /c `"$wrapper`""
+                timeout = 60
+            }
+        )
+    }
+}
+$hooksObj | ConvertTo-Json -Depth 6 | Set-Content $hooksJsonPath -Encoding UTF8
 $ruleSrc = Join-Path $Install ".cursor\rules\spoken-summary.mdc"
 if (Test-Path $ruleSrc) {
     $rulesDir = Join-Path $env:USERPROFILE ".cursor\rules"

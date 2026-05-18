@@ -386,11 +386,52 @@ def _cfg_float_bounded(cfg: dict, key: str, default: float, lo: float, hi: float
     return max(lo, min(hi, v))
 
 
+def _hook_inline_text(hook: dict) -> str:
+    """Inline assistant text from hook JSON (field names vary by Cursor build)."""
+    for key in ("text", "response", "message", "content"):
+        v = hook.get(key)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return ""
+
+
+def _transcript_assistant_text(hook: dict) -> str:
+    transcript = hook.get("transcript_path") or os.environ.get("CURSOR_TRANSCRIPT_PATH")
+    if not transcript or not os.path.isfile(transcript):
+        return ""
+    with open(transcript, encoding="utf-8", errors="replace") as f:
+        return _assistant_text_blocks(f.readlines())
+
+
+def _resolve_raw_text(hook: dict, event: str) -> str:
+    """
+    Best-effort assistant text for TTS.
+
+    afterAgentResponse usually sends inline `text`, but some builds omit
+    `<spoken_summary>` from that field while still showing it in the UI — then
+    read transcript_path when present.
+    """
+    if event == "afterAgentResponse":
+        inline = _hook_inline_text(hook)
+        if inline:
+            if _parse_spoken_summary(inline)[0]:
+                return inline
+            from_transcript = _transcript_assistant_text(hook)
+            if from_transcript and _parse_spoken_summary(from_transcript)[0]:
+                return from_transcript
+            return inline
+        return _transcript_assistant_text(hook)
+    return _transcript_assistant_text(hook)
+
+
 def main() -> None:
-    raw_hook = sys.stdin.read()
+    from hook_stdin_normalize import decode_hook_bytes, loads_hook_json
+
+    raw_hook = decode_hook_bytes(sys.stdin.buffer.read())
     try:
-        hook = json.loads(raw_hook) if raw_hook.strip() else {}
-    except json.JSONDecodeError:
+        hook = loads_hook_json(raw_hook)
+    except json.JSONDecodeError as exc:
+        print(f"hook_json_invalid: {exc}", file=sys.stderr)
         print("{}")
         return
 
@@ -428,25 +469,13 @@ def main() -> None:
         or hook.get("hookEventName")
         or ""
     )
-    inline = hook.get("text")
-    if event == "afterAgentResponse" and isinstance(inline, str) and inline.strip():
-        raw_text = inline.strip()
-    else:
-        transcript = hook.get("transcript_path") or os.environ.get(
-            "CURSOR_TRANSCRIPT_PATH"
-        )
-        if not transcript or not os.path.isfile(transcript):
-            print("{}")
-            return
-        with open(transcript, encoding="utf-8", errors="replace") as f:
-            lines = f.readlines()
-        raw_text = _assistant_text_blocks(lines)
-        if not raw_text:
-            print("{}")
-            return
+    raw_text = _resolve_raw_text(hook, event)
+    if not raw_text:
+        print("{}")
+        return
 
     spoken, flow_state = _parse_spoken_summary(raw_text)
-    if _cfg_bool(cfg, "only_speak_spoken_summary", True) and not spoken:
+    if _cfg_bool(cfg, "only_speak_spoken_summary", False) and not spoken:
         print("{}")
         return
 
