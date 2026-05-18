@@ -8,6 +8,8 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=resolve_aftertone_repo.sh
 source "${SCRIPT_DIR}/resolve_aftertone_repo.sh"
+# shellcheck source=venv_python.sh
+source "${SCRIPT_DIR}/venv_python.sh"
 REPO=""
 resolve_aftertone_repo "${SCRIPT_DIR}" || exit 0
 
@@ -16,8 +18,9 @@ STATE_DIR="${REPO}/.cursor/hooks/state"
 mkdir -p "${STATE_DIR}"
 TRACE="${STATE_DIR}/hook_payload_trace.jsonl"
 
-if [[ -x "${PY}/.venv/bin/python" ]]; then
-  cat | "${PY}/.venv/bin/python" "${PY}/hook_payload_trace.py" "${TRACE}"
+vpy=""
+if vpy="$(aftertone_venv_python "${PY}")"; then
+  cat | "${vpy}" "${PY}/hook_payload_trace.py" "${TRACE}"
 elif command -v uv >/dev/null 2>&1; then
   cat | (cd "${PY}" && uv run python hook_payload_trace.py "${TRACE}")
 else

@@ -10,8 +10,11 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PY="${REPO}/py"
 HOOK_SH="${REPO}/.cursor/hooks/speak_summary.sh"
 
-if [[ ! -x "${PY}/.venv/bin/python" ]]; then
-  echo "FAIL: ${PY}/.venv/bin/python missing. Run: cd py && uv sync"
+# shellcheck source=../.cursor/hooks/venv_python.sh
+source "${REPO}/.cursor/hooks/venv_python.sh"
+VENV_PY=""
+if ! VENV_PY="$(aftertone_venv_python "${PY}")"; then
+  echo "FAIL: ${PY}/.venv python missing. Run: cd py && uv sync"
   exit 1
 fi
 if [[ ! -f "${HOOK_SH}" ]]; then
@@ -59,7 +62,7 @@ if [[ -z "${LAST}" ]]; then
   echo "FAIL: no hook_payload_trace.jsonl tail (trace not written?)"
   exit 1
 fi
-if ! echo "${LAST}" | "${PY}/.venv/bin/python" -c "import json,sys; d=json.load(sys.stdin); assert d.get('inline_after_response_ok') is True"; then
+if ! echo "${LAST}" | "${VENV_PY}" -c "import json,sys; d=json.load(sys.stdin); assert d.get('inline_after_response_ok') is True"; then
   echo "FAIL: last trace line should have inline_after_response_ok true: ${LAST}"
   exit 1
 fi
@@ -68,7 +71,7 @@ fi
 STOP_JSON='{"hook_event_name":"stop","status":"completed","loop_count":0,"generation_id":"stop-trace-test"}'
 printf '%s' "${STOP_JSON}" | bash "${REPO}/.cursor/hooks/hook_payload_trace.sh"
 STOP_LAST="$(tail -1 "${TRACE}")"
-if ! echo "${STOP_LAST}" | "${PY}/.venv/bin/python" -c "import json,sys; d=json.load(sys.stdin); assert d.get('hook_event_name')=='stop' and d.get('status')=='completed'"; then
+if ! echo "${STOP_LAST}" | "${VENV_PY}" -c "import json,sys; d=json.load(sys.stdin); assert d.get('hook_event_name')=='stop' and d.get('status')=='completed'"; then
   echo "FAIL: stop trace line unexpected: ${STOP_LAST}"
   exit 1
 fi

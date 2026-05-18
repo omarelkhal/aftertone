@@ -78,6 +78,16 @@ if ($env:SKIP_WEB -ne "1" -and (Test-Path (Join-Path $Web "package.json"))) {
     Write-Host "==> bootstrap: no web/package.json - skipping web"
 }
 
+function Install-WindowsProjectHooks {
+    $hooksWin = Join-Path $Root ".cursor\hooks.windows.json"
+    $hooksDst = Join-Path $Root ".cursor\hooks.json"
+    if (-not (Test-Path $hooksWin)) { return }
+    Copy-Item -Path $hooksWin -Destination $hooksDst -Force
+    Write-Host "==> bootstrap: Windows project hooks -> .cursor/hooks.json (.cmd wrappers; bash is not on Cursor PATH)"
+}
+
+Install-WindowsProjectHooks
+
 Write-Host "==> bootstrap: done."
 Write-Host "    Python: cd py; uv run python example_onnx.py"
 Write-Host '    TTS hook smoke (Git Bash): bash py/test_speak_summary_pipeline.sh'

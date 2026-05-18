@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterAgentResponse": [
+      {
+        "command": ".cursor\\hooks\\speak_summary.cmd",
+        "timeout": 8
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor\\hooks\\hook_payload_trace.cmd",
+        "matcher": "Stop",
+        "timeout": 3
+      }
+    ]
+  }
+}

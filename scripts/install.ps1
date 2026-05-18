@@ -154,6 +154,25 @@ function Enable-SpokenTts {
     Pop-Location
 }
 
+function Sync-SpokenSummaryRule {
+    param([string] $Root)
+    Write-Host "==> install: syncing spoken-summary Cursor rule (lang from speak_summary.toml)…"
+    Push-Location (Join-Path $Root "py")
+    $pyArgs = Get-PythonVersionArg -Root $Root
+    & uv run @pyArgs python sync_spoken_rule_lang.py
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "install: could not sync spoken-summary.mdc"
+    }
+    Pop-Location
+    $userRule = Join-Path $env:USERPROFILE ".cursor\rules\spoken-summary.mdc"
+    $srcRule = Join-Path $Root ".cursor\rules\spoken-summary.mdc"
+    if (Test-Path $srcRule) {
+        $rulesDir = Split-Path $userRule -Parent
+        if (-not (Test-Path $rulesDir)) { New-Item -ItemType Directory -Path $rulesDir -Force | Out-Null }
+        Copy-Item -Path $srcRule -Destination $userRule -Force
+    }
+}
+
 function Start-TtsDaemon {
     param([string] $Root)
     Write-Host "==> install: starting tts_daemon (may take 1-2 min while models load)…"
@@ -182,9 +201,11 @@ Installed: Python deps, ONNX assets, user Cursor hooks, tts_daemon, spoken TTS e
 Hooks file: $cursorHooks
 
 In Cursor only:
-  1. Settings -> enable Hooks
+  1. Settings -> enable Hooks (required)
   2. Trust the workspace(s) where you want spoken summaries
-  3. Optional: open $Root and use /aftertone-status to verify
+  3. Reload Cursor after install (hooks.json / rules load at startup)
+  4. Agents must end substantive replies with <spoken_summary>...</spoken_summary> (rule: $env:USERPROFILE\.cursor\rules\spoken-summary.mdc)
+  5. If you use a git clone as the workspace, its .cursor/hooks.json must use .cmd on Windows (bootstrap.ps1 sets this); global hooks alone also work via $cursorHooks
 
 Docs: $Root\README.md
 "@
@@ -201,6 +222,7 @@ if (-not $NoGlobal) {
 
 if (-not $NoEnableTts) {
     Enable-SpokenTts -Root $InstallDir
+    Sync-SpokenSummaryRule -Root $InstallDir
 }
 
 if (-not $NoStartDaemon) {

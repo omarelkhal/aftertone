@@ -12,8 +12,11 @@ echo "=== last 20 lines: speak_summary-hook.log ==="
 tail -20 "${ST}/speak_summary-hook.log" 2>/dev/null || echo "(missing)"
 
 export DIAG_REPO="${REPO}"
-if [[ -x "${REPO}/py/.venv/bin/python" ]]; then
-  "${REPO}/py/.venv/bin/python" "${REPO}/py/diagnose_speak_hooks_report.py"
+# shellcheck source=../.cursor/hooks/venv_python.sh
+source "${REPO}/.cursor/hooks/venv_python.sh"
+vpy=""
+if vpy="$(aftertone_venv_python "${REPO}/py")"; then
+  "${vpy}" "${REPO}/py/diagnose_speak_hooks_report.py"
 else
   echo ""
   echo "(Install venv: cd py && uv sync — then verdict script can run.)"

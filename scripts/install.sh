@@ -157,11 +157,28 @@ enable_spoken_tts() {
   }
 }
 
+sync_spoken_summary_rule() {
+  local root="$1"
+  echo "==> install: syncing spoken-summary Cursor rule…"
+  (cd "${root}/py" && uv run python sync_spoken_rule_lang.py) || {
+    echo "install: could not sync spoken-summary.mdc" >&2
+    return 1
+  }
+  mkdir -p "${HOME}/.cursor/rules"
+  cp "${root}/.cursor/rules/spoken-summary.mdc" "${HOME}/.cursor/rules/spoken-summary.mdc"
+}
+
 install_global_hooks() {
   local root="$1"
+  local vpy=""
   echo "==> install: user-level Cursor hooks (~/.cursor)…"
-  if [[ -x "${root}/py/.venv/bin/python" ]]; then
-    "${root}/py/.venv/bin/python" "${root}/py/install_global_hooks.py" --install-dir "${root}"
+  if [[ -x "${root}/py/.venv/Scripts/python.exe" ]]; then
+    vpy="${root}/py/.venv/Scripts/python.exe"
+  elif [[ -x "${root}/py/.venv/bin/python" ]]; then
+    vpy="${root}/py/.venv/bin/python"
+  fi
+  if [[ -n "${vpy}" ]]; then
+    "${vpy}" "${root}/py/install_global_hooks.py" --install-dir "${root}"
   elif command -v uv >/dev/null 2>&1; then
     (cd "${root}/py" && uv run python install_global_hooks.py --install-dir "${root}")
   else
@@ -244,6 +261,7 @@ main() {
 
   if [[ "${START_DAEMON}" == "1" ]]; then
     enable_spoken_tts "${INSTALL_DIR}" || true
+    sync_spoken_summary_rule "${INSTALL_DIR}" || true
     start_daemon "${INSTALL_DIR}" || true
   fi
 

@@ -13,6 +13,8 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=resolve_aftertone_repo.sh
 source "${SCRIPT_DIR}/resolve_aftertone_repo.sh"
+# shellcheck source=venv_python.sh
+source "${SCRIPT_DIR}/venv_python.sh"
 REPO=""
 if ! resolve_aftertone_repo "${SCRIPT_DIR}"; then
   mkdir -p "${SCRIPT_DIR}/state"
@@ -36,7 +38,10 @@ log() {
 }
 
 HOOK_JSON="$(cat || true)"
-printf '%s' "${HOOK_JSON}" | "${PY}/.venv/bin/python" "${PY}/hook_payload_trace.py" "${STATE_DIR}/hook_payload_trace.jsonl" 2>/dev/null || true
+VENV_PY=""
+if VENV_PY="$(aftertone_venv_python "${PY}")"; then
+  printf '%s' "${HOOK_JSON}" | "${VENV_PY}" "${PY}/hook_payload_trace.py" "${STATE_DIR}/hook_payload_trace.jsonl" 2>/dev/null || true
+fi
 log "hook_invoked hook_json_bytes=${#HOOK_JSON}"
 
 read_port() {
@@ -64,8 +69,9 @@ read_port() {
 
 run_prepare() {
   : >"${PREP_ERR}"
-  if [[ -x "${PY}/.venv/bin/python" ]]; then
-    printf '%s' "${HOOK_JSON}" | "${PY}/.venv/bin/python" "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
+  local vpy=""
+  if vpy="$(aftertone_venv_python "${PY}")"; then
+    printf '%s' "${HOOK_JSON}" | "${vpy}" "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
     return $?
   fi
   if command -v uv >/dev/null 2>&1; then
@@ -76,7 +82,7 @@ run_prepare() {
     printf '%s' "${HOOK_JSON}" | PYTHONPATH="${PY}" python3 "${PY}/speak_summary_prepare.py" 2>>"${PREP_ERR}"
     return $?
   fi
-  log "prepare_skip no_python venv_missing=${PY}/.venv/bin/python uv_missing=1"
+  log "prepare_skip no_python venv_missing=${PY}/.venv uv_missing=1"
   echo '{}'
   return 1
 }
@@ -87,8 +93,9 @@ ensure_daemon() {
     return 0
   fi
   log "daemon_bootstrap port=${port}"
-  if [[ -x "${PY}/.venv/bin/python" ]]; then
-    "${PY}/.venv/bin/python" "${PY}/tts_daemon_ctl.py" start --repo-root "${REPO}" >>"${STATE_DIR}/tts-daemon-bootstrap.log" 2>&1 || true
+  local vpy=""
+  if vpy="$(aftertone_venv_python "${PY}")"; then
+    "${vpy}" "${PY}/tts_daemon_ctl.py" start --repo-root "${REPO}" >>"${STATE_DIR}/tts-daemon-bootstrap.log" 2>&1 || true
   elif command -v uv >/dev/null 2>&1; then
     (cd "${PY}" && uv run python tts_daemon_ctl.py start --repo-root "${REPO}") >>"${STATE_DIR}/tts-daemon-bootstrap.log" 2>&1 || true
   else
