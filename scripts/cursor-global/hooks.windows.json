@@ -3,7 +3,7 @@
   "hooks": {
     "afterAgentResponse": [
       {
-        "command": ".\\hooks\\aftertone-speak_summary.cmd",
+        "command": "cmd /c hooks\\aftertone-speak_summary.cmd",
         "timeout": 8
       }
     ]

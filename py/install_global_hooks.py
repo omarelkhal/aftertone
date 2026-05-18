@@ -12,7 +12,8 @@ from pathlib import Path
 
 _AFTER_AGENT = "afterAgentResponse"
 _CMD_UNIX = "bash ./hooks/aftertone-speak_summary.sh"
-_CMD_WIN = r".\hooks\aftertone-speak_summary.cmd"
+# Cursor on Windows does not execute .cmd paths unless wrapped (forum + Colin, Cursor support).
+_CMD_WIN = r"cmd /c hooks\aftertone-speak_summary.cmd"
 
 
 def _hook_command() -> str:

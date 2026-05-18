@@ -99,7 +99,7 @@ def test_install_global_windows_cmd(tmp_path: Path, monkeypatch) -> None:
                 "hooks": {
                     "afterAgentResponse": [
                         {
-                            "command": r".\hooks\aftertone-speak_summary.cmd",
+                            "command": r"cmd /c hooks\aftertone-speak_summary.cmd",
                             "timeout": 8,
                         }
                     ],
@@ -116,6 +116,6 @@ def test_install_global_windows_cmd(tmp_path: Path, monkeypatch) -> None:
     assert (fake_home / ".cursor/hooks/aftertone-speak_summary.cmd").is_file()
     hooks = json.loads((fake_home / ".cursor/hooks.json").read_text())
     assert any(
-        e.get("command") == r".\hooks\aftertone-speak_summary.cmd"
+        e.get("command") == r"cmd /c hooks\aftertone-speak_summary.cmd"
         for e in hooks["hooks"]["afterAgentResponse"]
     )
