@@ -3,13 +3,13 @@
   "hooks": {
     "afterAgentResponse": [
       {
-        "command": "cmd /c .cursor\\hooks\\speak_summary.cmd",
+        "command": "bash .cursor/hooks/speak_summary.sh",
         "timeout": 8
       }
     ],
     "stop": [
       {
-        "command": "cmd /c .cursor\\hooks\\hook_payload_trace.cmd",
+        "command": "bash .cursor/hooks/hook_payload_trace.sh",
         "matcher": "Stop",
         "timeout": 3
       }
