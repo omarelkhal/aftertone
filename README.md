@@ -13,6 +13,13 @@
   <a href="https://buymeacoffee.com/elkhalomar"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy me a coffee" width="217" height="60" /></a>
 </p>
 
+<p align="center">
+  <video src="https://omarelkhal.github.io/aftertone/demo.mp4" controls width="720" playsinline>
+    <a href="https://omarelkhal.github.io/aftertone/demo.mp4">Watch the demo</a>
+  </video>
+</p>
+<p align="center"><sub>Short dev question and clone-a-repo task — local spoken summaries after Claude Code replies (<code>/aftertone_on</code>).</sub></p>
+
 ## Adapters
 
 | | Cursor | Claude Code | Codex | OpenCode |

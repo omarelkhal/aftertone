@@ -823,3 +823,53 @@ tr:last-child td {
   color: var(--muted);
   max-width: 36rem;
 }
+
+/* Demo video */
+.demo-section {
+  margin: 2.5rem 0 0;
+  padding: 0;
+}
+
+.demo-section .section-head {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.demo-section .section-head h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  margin: 0 0 0.5rem;
+}
+
+.demo-section .section-head p {
+  margin: 0 auto;
+  color: var(--muted);
+  max-width: 32rem;
+  font-size: 0.98rem;
+}
+
+.demo-video-wrap {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-strong);
+  background: var(--code-bg);
+}
+
+.demo-video-wrap video {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.demo-caption {
+  margin: 0.85rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted-soft);
+}
+
+.demo-caption strong {
+  color: var(--fg);
+}
