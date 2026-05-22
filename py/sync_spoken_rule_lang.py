@@ -40,9 +40,10 @@ def _load_lang(toml_path: Path) -> str:
 
 def _blurb(lang: str) -> str:
     return (
-        f"> **Active `lang` for `<spoken_summary>`:** `{lang}` "
+        f"> **Locked `lang` for `<spoken_summary>` only:** `{lang}` "
         "(from [`.cursor/hooks/speak_summary.toml`](../hooks/speak_summary.toml)). "
-        "Write **only** the inner tag text in the natural language for that code. "
+        "The hook does **not** translate. Write the **inner tag** only in that language — "
+        "**even when the user writes in another language**; the rest of your reply may follow the user. "
         "After changing `lang` in the TOML, from the **repo root** run: "
         "`uv run --directory py python sync_spoken_rule_lang.py`\n"
     )
@@ -50,12 +51,20 @@ def _blurb(lang: str) -> str:
 
 def _blurb_claude(lang: str) -> str:
     return (
-        f"> **Active `lang` for `<spoken_summary>`:** `{lang}` "
+        f"> **Locked `lang` for `<spoken_summary>` only:** `{lang}` "
         "(from `~/aftertone/.cursor/hooks/speak_summary.toml` on global install). "
-        "Write **only** the inner tag text in the natural language for that code. "
+        "Write the **inner tag** only in that language — **not** the conversation language. "
         "After changing `lang`, run `/aftertone-lang` or "
         "`uv run --directory py python sync_spoken_rule_lang.py` from the Aftertone repo.\n"
     )
+
+
+def _user_cursor_rule_path() -> Path | None:
+    """Global install copies the rule to ~/.cursor/rules; keep it in sync with TOML."""
+    marker = Path.home() / ".cursor" / "hooks" / "aftertone-install-dir"
+    if not marker.is_file():
+        return None
+    return Path.home() / ".cursor" / "rules" / "spoken-summary.mdc"
 
 
 def _replace_lang_block(body: str, blurb: str) -> tuple[str, bool]:
@@ -129,6 +138,13 @@ def sync_rule(repo: Path, *, check_only: bool) -> int:
 
     mdc_path.write_text(new_body, encoding="utf-8")
     print(f"updated {mdc_path} (lang={lang})")
+
+    user_mdc = _user_cursor_rule_path()
+    if user_mdc is not None:
+        user_mdc.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(mdc_path, user_mdc)
+        print(f"updated {user_mdc} (global Cursor rule, lang={lang})")
+
     return 0
 
 

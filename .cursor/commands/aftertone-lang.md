@@ -38,3 +38,9 @@ uv run --directory py python -m aftertone set lang CODE
 ```
 
 Replace `CODE` with the pick or user value. No hand-editing TOML. No daemon restart. Report stdout only.
+
+## After the command (same reply)
+
+The CLI syncs **`lang`** into the spoken-summary rule. Tell the user the new code briefly.
+
+**Required:** end **this** message with `<spoken_summary>...</spoken_summary>` written **only** in language **`CODE`** (the TOML language), even if the user has been chatting in another language. One short line that spoken TTS will use **`CODE`** from now on for the tag.

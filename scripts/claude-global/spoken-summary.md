@@ -28,7 +28,7 @@ Answer, in order of priority:
 ## Language (must match TOML `lang`)
 
 <!-- autogen:spoken-lang:start -->
-> **Active `lang` for `<spoken_summary>`:** `en` (from `~/aftertone/.cursor/hooks/speak_summary.toml` on global install). Write **only** the inner tag text in the natural language for that code. After changing `lang`, run `/aftertone-lang` or `uv run --directory py python sync_spoken_rule_lang.py` from the Aftertone repo.
+> **Locked `lang` for `<spoken_summary>` only:** `en` (from `~/aftertone/.cursor/hooks/speak_summary.toml` on global install). Write the **inner tag** only in that language — **not** the conversation language. After changing `lang`, run `/aftertone-lang` or `uv run --directory py python sync_spoken_rule_lang.py` from the Aftertone repo.
 <!-- autogen:spoken-lang:end -->
 
 - Read **`lang`** in `~/aftertone/.cursor/hooks/speak_summary.toml` (or your install’s `.cursor/hooks/speak_summary.toml`) before you write `<spoken_summary>`.
