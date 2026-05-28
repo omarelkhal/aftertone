@@ -39,7 +39,15 @@ def test_merge_codex_hooks_appends_without_duplicates() -> None:
     existing = {
         "hooks": {
             "Stop": [
-                {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "bash /tmp/other.sh",
+                            "timeout": 1,
+                        }
+                    ]
+                },
             ],
         },
     }
@@ -47,9 +55,13 @@ def test_merge_codex_hooks_appends_without_duplicates() -> None:
         "hooks": {
             "Stop": [
                 {
-                    "type": "command",
-                    "command": "bash /tmp/aftertone-codex-speak-on-stop.sh",
-                    "timeout_ms": 10000,
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "bash /tmp/aftertone-codex-speak-on-stop.sh",
+                            "timeout": 10,
+                        }
+                    ]
                 },
             ],
         },
@@ -57,7 +69,7 @@ def test_merge_codex_hooks_appends_without_duplicates() -> None:
 
     merged = _merge_codex_hooks(existing, fragment)
 
-    cmds = [h["command"] for h in merged["hooks"]["Stop"]]
+    cmds = [h["hooks"][0]["command"] for h in merged["hooks"]["Stop"]]
     assert cmds == [
         "bash /tmp/other.sh",
         "bash /tmp/aftertone-codex-speak-on-stop.sh",
@@ -73,7 +85,15 @@ def test_merge_codex_hooks_replaces_stale_aftertone_entries() -> None:
                     "command": "bash /old/aftertone-codex-speak-on-stop.sh",
                     "timeout_ms": 10000,
                 },
-                {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "bash /tmp/other.sh",
+                            "timeout": 1,
+                        }
+                    ]
+                },
             ],
         },
     }
@@ -81,9 +101,13 @@ def test_merge_codex_hooks_replaces_stale_aftertone_entries() -> None:
         "hooks": {
             "Stop": [
                 {
-                    "type": "command",
-                    "command": "bash /new/aftertone-codex-speak-on-stop.sh",
-                    "timeout_ms": 10000,
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "bash /new/aftertone-codex-speak-on-stop.sh",
+                            "timeout": 10,
+                        }
+                    ]
                 },
             ],
         },
@@ -91,7 +115,7 @@ def test_merge_codex_hooks_replaces_stale_aftertone_entries() -> None:
 
     merged = _merge_codex_hooks(existing, fragment)
 
-    cmds = [h["command"] for h in merged["hooks"]["Stop"]]
+    cmds = [h["hooks"][0]["command"] for h in merged["hooks"]["Stop"]]
     assert cmds == ["bash /tmp/other.sh", "bash /new/aftertone-codex-speak-on-stop.sh"]
 
 
@@ -160,9 +184,13 @@ def test_install_global_writes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
                 "hooks": {
                     "Stop": [
                         {
-                            "type": "command",
-                            "command": "__AFTERTONE_CODEX_STOP__",
-                            "timeout_ms": 10000,
+                            "hooks": [
+                                {
+                                    "type": "command",
+                                    "command": "__AFTERTONE_CODEX_STOP__",
+                                    "timeout": 10,
+                                }
+                            ]
                         }
                     ],
                 },
@@ -174,10 +202,13 @@ def test_install_global_writes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
     install_global_codex(install_dir=install)
 
     hooks = json.loads((fake_home / ".codex/hooks.json").read_text())
-    command = hooks["hooks"]["Stop"][0]["command"]
+    stop_group = hooks["hooks"]["Stop"][0]
+    assert "command" not in stop_group
+    command = stop_group["hooks"][0]["command"]
     assert command.startswith("bash ")
     assert "bash bash" not in command
     assert "aftertone-codex-speak-on-stop.sh" in command
+    assert stop_group["hooks"][0]["timeout"] == 10
     assert (fake_home / ".cursor/hooks/aftertone-codex-speak-on-stop.sh").is_file()
 
 
@@ -247,9 +278,13 @@ def test_install_global_codex_windows_cmd(tmp_path: Path, monkeypatch) -> None:
                 "hooks": {
                     "Stop": [
                         {
-                            "type": "command",
-                            "command": "cmd /c \"__AFTERTONE_CODEX_STOP_CMD__\"",
-                            "timeout_ms": 10000,
+                            "hooks": [
+                                {
+                                    "type": "command",
+                                    "command": "cmd /c \"__AFTERTONE_CODEX_STOP_CMD__\"",
+                                    "timeout": 10,
+                                }
+                            ]
                         }
                     ],
                 },
@@ -261,7 +296,7 @@ def test_install_global_codex_windows_cmd(tmp_path: Path, monkeypatch) -> None:
     install_global_codex(install_dir=install)
 
     hooks = json.loads((fake_home / ".codex/hooks.json").read_text())
-    cmd = hooks["hooks"]["Stop"][0]["command"]
+    cmd = hooks["hooks"]["Stop"][0]["hooks"][0]["command"]
     assert "cmd /c" in cmd
     assert "aftertone-codex-speak-on-stop.cmd" in cmd
     assert (fake_home / ".cursor/hooks/aftertone-codex-speak-on-stop.cmd").is_file()

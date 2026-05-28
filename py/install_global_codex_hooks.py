@@ -22,14 +22,46 @@ def _strip_aftertone_entries(hooks: dict) -> dict:
         if not isinstance(entries, list):
             out[event] = entries
             continue
-        kept = [
-            h
-            for h in entries
-            if isinstance(h, dict) and _MARKER not in (h.get("command") or "")
-        ]
+        kept = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            # Legacy flat command form from early Codex adapter builds.
+            if _MARKER in (entry.get("command") or ""):
+                continue
+            nested = entry.get("hooks")
+            if isinstance(nested, list):
+                nested_kept = [
+                    h
+                    for h in nested
+                    if not (
+                        isinstance(h, dict)
+                        and _MARKER in (h.get("command") or "")
+                    )
+                ]
+                if nested_kept:
+                    next_entry = dict(entry)
+                    next_entry["hooks"] = nested_kept
+                    kept.append(next_entry)
+                continue
+            kept.append(entry)
         if kept:
             out[event] = kept
     return out
+
+
+def _commands(entry: dict) -> list[str]:
+    command = entry.get("command")
+    if isinstance(command, str):
+        return [command]
+    nested = entry.get("hooks")
+    if not isinstance(nested, list):
+        return []
+    return [
+        h.get("command")
+        for h in nested
+        if isinstance(h, dict) and isinstance(h.get("command"), str)
+    ]
 
 
 def _merge_codex_hooks(existing: dict, fragment: dict) -> dict:
@@ -38,14 +70,15 @@ def _merge_codex_hooks(existing: dict, fragment: dict) -> dict:
     frag_hooks = fragment.get("hooks") or {}
     for event, entries in frag_hooks.items():
         cur = list(hooks.get(event) or [])
-        seen = {h.get("command") for h in cur if isinstance(h, dict)}
+        seen = {cmd for h in cur if isinstance(h, dict) for cmd in _commands(h)}
         for entry in entries:
             if not isinstance(entry, dict):
                 continue
-            if entry.get("command") in seen:
+            entry_commands = _commands(entry)
+            if any(cmd in seen for cmd in entry_commands):
                 continue
             cur.append(entry)
-            seen.add(entry.get("command"))
+            seen.update(entry_commands)
         hooks[event] = cur
     out["hooks"] = hooks
     return out
