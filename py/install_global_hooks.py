@@ -182,6 +182,15 @@ def install_global(*, install_dir: Path, dry_run: bool = False) -> None:
     except Exception as exc:
         print(f"Claude Code hooks: skipped ({exc})", file=sys.stderr)
 
+    try:
+        from install_global_codex_hooks import install_global_codex
+
+        install_global_codex(install_dir=install_dir, dry_run=dry_run)
+    except SystemExit as exc:
+        print(f"Codex hooks: skipped ({exc})", file=sys.stderr)
+    except Exception as exc:
+        print(f"Codex hooks: skipped ({exc})", file=sys.stderr)
+
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Install Aftertone user-level Cursor hooks.")
