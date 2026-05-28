@@ -361,6 +361,75 @@ def test_prepare_codex_stop_without_tag_is_silent_in_tag_only_mode():
     }
 
     assert prepare_payload(hook, cfg) is None
+    assert hook["_aftertone_skip_reason"] == "no_text"
+
+
+def test_prepare_codex_stop_records_not_allowlisted_skip(tmp_path):
+    from aftertone.sessions import save_sessions
+
+    repo = tmp_path / "repo"
+    hooks_dir = repo / ".cursor" / "hooks"
+    hooks_dir.mkdir(parents=True)
+    save_sessions(repo, {"cursor": [], "claude": [], "codex": ["other-session"]})
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "blocked-codex",
+        "turn_id": "turn-2",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "<spoken_summary>Should not speak!!</spoken_summary>",
+    }
+    cfg = {
+        "enabled": True,
+        "session_mode": "allowlist",
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    assert prepare_payload(hook, cfg, repo) is None
+    assert hook["_aftertone_skip_reason"] == "not_allowlisted"
+
+
+def test_prepare_codex_stop_retries_transcript_until_tag(monkeypatch):
+    import aftertone.prepare as prepare_mod
+
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-2",
+        "turn_id": "turn-2",
+        "model": "gpt-5.5",
+        "permission_mode": "default",
+        "transcript_path": "/tmp/codex.jsonl",
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+        "codex_transcript_retry_delays": "0.01,0.02",
+    }
+    calls = iter(
+        [
+            "Assistant text without a spoken tag.",
+            "<spoken_summary>Codex retry found the tag!!</spoken_summary>",
+        ]
+    )
+    sleeps: list[float] = []
+    monkeypatch.setattr(prepare_mod, "resolve_raw_text", lambda _h, _e: next(calls))
+    monkeypatch.setattr(prepare_mod.time, "sleep", lambda delay: sleeps.append(delay))
+
+    out = prepare_payload(hook, cfg)
+
+    assert out is not None
+    assert out["text"] == "Codex retry found the tag!!"
+    assert sleeps == [0.01]
 
 
 def test_prepare_skips_codex_user_prompt_submit_event():

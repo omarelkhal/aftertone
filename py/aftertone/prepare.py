@@ -25,6 +25,33 @@ _RESPONSE_HOOK_EVENTS = frozenset(
 )
 
 
+def _skip(hook: dict, reason: str) -> None:
+    hook["_aftertone_skip_reason"] = reason
+
+
+def _has_transcript_path(hook: dict) -> bool:
+    transcript = hook.get("transcript_path")
+    return isinstance(transcript, str) and bool(transcript.strip())
+
+
+def _codex_transcript_retry_delays(cfg: dict) -> list[float]:
+    raw = cfg.get("codex_transcript_retry_delays", "0.15,0.35,0.75")
+    if isinstance(raw, (int, float)):
+        return [max(0.0, min(float(raw), 2.0))]
+    if not isinstance(raw, str):
+        return []
+    delays: list[float] = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            delays.append(max(0.0, min(float(part), 2.0)))
+        except ValueError:
+            continue
+    return delays[:5]
+
+
 def prepare_payload(hook: dict, cfg: dict | None = None, root=None) -> dict | None:
     if root is None:
         try:
@@ -39,10 +66,12 @@ def prepare_payload(hook: dict, cfg: dict | None = None, root=None) -> dict | No
         process_pending_from_hook(root, hook)
 
     if not cfg_enabled(cfg):
+        _skip(hook, "disabled")
         return None
 
-    allowed, _skip = session_allows_speech(cfg, hook, root)
+    allowed, skip_reason = session_allows_speech(cfg, hook, root)
     if not allowed:
+        _skip(hook, skip_reason or "session_blocked")
         return None
 
     quiet = str(cfg.get("quiet_hours", ""))
@@ -51,6 +80,7 @@ def prepare_payload(hook: dict, cfg: dict | None = None, root=None) -> dict | No
         "true",
         "yes",
     ) and in_quiet_hours(datetime.now().astimezone(), quiet):
+        _skip(hook, "quiet_hours")
         return None
 
     min_chars = int(cfg.get("min_chars", 5))
@@ -60,10 +90,7 @@ def prepare_payload(hook: dict, cfg: dict | None = None, root=None) -> dict | No
     fence_thr = cfg_float_bounded(cfg, "heuristic_code_fence_fraction", 0.35, 0.05, 0.95)
 
     if event and event not in _RESPONSE_HOOK_EVENTS:
-        return None
-
-    raw_text = resolve_raw_text(hook, event or "afterAgentResponse")
-    if not raw_text:
+        _skip(hook, f"event:{event}")
         return None
 
     mode = summary_mode(cfg)
@@ -76,18 +103,32 @@ def prepare_payload(hook: dict, cfg: dict | None = None, root=None) -> dict | No
 
         return apply_expression(text, flow_state, mode_name)
 
-    text, _source = build_speakable_text(
-        raw_text,
-        cfg,
-        mode,
-        min_chars=min_chars,
-        max_chars=max_chars,
-        h_max=h_max,
-        h_code_max=h_code_max,
-        fence_thr=fence_thr,
-        apply_expression_fn=_apply_expression,
-    )
+    text = ""
+    retry_delays = []
+    if event == "Stop" and _has_transcript_path(hook):
+        retry_delays = _codex_transcript_retry_delays(cfg)
+
+    for delay in [0.0, *retry_delays]:
+        if delay:
+            time.sleep(delay)
+        raw_text = resolve_raw_text(hook, event or "afterAgentResponse")
+        if not raw_text:
+            continue
+        text, _source = build_speakable_text(
+            raw_text,
+            cfg,
+            mode,
+            min_chars=min_chars,
+            max_chars=max_chars,
+            h_max=h_max,
+            h_code_max=h_code_max,
+            fence_thr=fence_thr,
+            apply_expression_fn=_apply_expression,
+        )
+        if text:
+            break
     if not text:
+        _skip(hook, "no_text")
         return None
 
     return {
