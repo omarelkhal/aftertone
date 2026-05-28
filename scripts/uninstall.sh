@@ -158,6 +158,8 @@ run_uninstall_global_hooks() {
   trap cleanup_tmp RETURN
   echo "==> uninstall: fetching hook helpers from ${py_url}…"
   if ! curl -fsSL "${py_url}/install_global_hooks.py" -o "${tmp}/install_global_hooks.py" \
+    || ! curl -fsSL "${py_url}/install_global_claude_hooks.py" -o "${tmp}/install_global_claude_hooks.py" \
+    || ! curl -fsSL "${py_url}/install_global_codex_hooks.py" -o "${tmp}/install_global_codex_hooks.py" \
     || ! curl -fsSL "${py_url}/uninstall_global_hooks.py" -o "${tmp}/uninstall_global_hooks.py"; then
     echo "uninstall: could not download uninstall_global_hooks.py (not on main yet? use a clone: bash scripts/uninstall.sh)" >&2
     cleanup_tmp
