@@ -223,3 +223,45 @@ def test_install_global_windows_cmd(tmp_path: Path, monkeypatch) -> None:
         and "cmd /c" in (e.get("command") or "")
         for e in hooks["hooks"]["afterAgentResponse"]
     )
+
+
+def test_install_global_codex_windows_cmd(tmp_path: Path, monkeypatch) -> None:
+    from install_global_codex_hooks import install_global_codex
+
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
+    monkeypatch.setattr("install_global_codex_hooks.sys.platform", "win32")
+
+    install = tmp_path / "aftertone"
+    (install / "py").mkdir(parents=True)
+    (install / "py" / "speak_summary_prepare.py").write_text("# stub\n")
+    tpl = install / "scripts" / "codex-global"
+    tpl.mkdir(parents=True)
+    (tpl / "aftertone-codex-speak-on-stop.sh").write_text("#!/bin/bash\n", encoding="utf-8")
+    (tpl / "aftertone-codex-speak-on-stop.cmd").write_text("@echo off\n", encoding="utf-8")
+    (tpl / "hooks.windows.json").write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [
+                        {
+                            "type": "command",
+                            "command": "cmd /c \"__AFTERTONE_CODEX_STOP_CMD__\"",
+                            "timeout_ms": 10000,
+                        }
+                    ],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    install_global_codex(install_dir=install)
+
+    hooks = json.loads((fake_home / ".codex/hooks.json").read_text())
+    cmd = hooks["hooks"]["Stop"][0]["command"]
+    assert "cmd /c" in cmd
+    assert "aftertone-codex-speak-on-stop.cmd" in cmd
+    assert (fake_home / ".cursor/hooks/aftertone-codex-speak-on-stop.cmd").is_file()
