@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "cmd /c \"__AFTERTONE_CODEX_STOP_CMD__\"",
+        "timeout_ms": 10000
+      }
+    ]
+  }
+}
