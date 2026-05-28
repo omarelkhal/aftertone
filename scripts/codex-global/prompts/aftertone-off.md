@@ -2,6 +2,8 @@
 
 Disable Aftertone spoken TTS for this Codex session only.
 
+Prefer `$aftertone-off`, or open `/skills` and choose `aftertone-off`. This prompt remains a compatibility fallback.
+
 Run exactly one shell command:
 
 ```bash

@@ -136,8 +136,8 @@
       <ul style="color: var(--muted); line-height: 1.75; margin-bottom: 2rem;">
         <li>Run <code>codex</code> normally.</li>
         <li>Review or trust the installed <code>~/.codex/hooks.json</code> entry if Codex prompts for hook trust.</li>
-        <li>Enable this session with <code>uv run --directory ~/aftertone/py python -m aftertone on</code>.</li>
-        <li>Send one reply with a <code>&lt;spoken_summary&gt;</code> tag so the Stop hook registers the session id.</li>
+        <li>Enable this session with <code>$aftertone-on</code>, or open <code>/skills</code> and choose <code>aftertone-on</code>.</li>
+        <li>The skill sends one reply with a <code>&lt;spoken_summary&gt;</code> tag so the Stop hook registers the session id.</li>
       </ul>
 
       <details style="margin-bottom: 2rem;">
@@ -204,16 +204,16 @@
       </div>
       <p>Guide on GitHub: <a href="https://github.com/omarelkhal/aftertone/blob/main/docs/adapters/claude.md">docs/adapters/claude.md</a> · command sources <a href="https://github.com/omarelkhal/aftertone/tree/main/claude-plugin/aftertone/commands"><code>claude-plugin/aftertone/commands/</code></a></p>
 
-      <h3 id="slash-codex">Codex (CLI control)</h3>
-      <p>Global install registers a Codex <strong>Stop</strong> hook in <code>~/.codex/hooks.json</code>, plus guidance in <code>~/.codex/AGENTS.md</code>. Codex control uses the Aftertone CLI from the install root.</p>
+      <h3 id="slash-codex">Codex (skills)</h3>
+      <p>Global install registers a Codex <strong>Stop</strong> hook in <code>~/.codex/hooks.json</code>, guidance in <code>~/.codex/AGENTS.md</code>, and user skills in <code>~/.agents/skills/aftertone-*</code>. Invoke them with <code>$aftertone-on</code> or through <code>/skills</code>. CLI commands remain available as terminal fallbacks.</p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr><th>Command</th><th>What it does</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>python -m aftertone on</code> · <code>off</code></td><td>Enable or disable spoken TTS for the current Codex session</td></tr>
-            <tr><td><code>python -m aftertone status</code></td><td>Show config, daemon, and enabled sessions</td></tr>
+            <tr><td><code>$aftertone-on</code> · <code>$aftertone-off</code></td><td>Enable or disable spoken TTS for the current Codex session</td></tr>
+            <tr><td><code>$aftertone-status</code></td><td>Show config, daemon, and enabled sessions</td></tr>
             <tr><td><code>python -m aftertone session list</code></td><td>Confirm the Codex session id was registered</td></tr>
           </tbody>
         </table>

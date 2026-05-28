@@ -406,7 +406,19 @@ def make_handler(worker: TTSWorker, port: int, repo_root: str):
                 out = prepare_payload(raw_hook, cfg, Path(repo_root))
                 prepare_ms = int((time.perf_counter() - t0) * 1000)
                 if out is None:
-                    _hook_log(repo_root, "prepare_skip no_text")
+                    reason = str(raw_hook.get("_aftertone_skip_reason") or "unknown")
+                    try:
+                        from aftertone.sessions import hook_adapter, hook_session_id
+
+                        adapter = hook_adapter(raw_hook)
+                        sid = hook_session_id(raw_hook, adapter) or "-"
+                    except Exception:
+                        adapter = "-"
+                        sid = "-"
+                    _hook_log(
+                        repo_root,
+                        f"prepare_skip reason={reason} adapter={adapter} session_id={sid}",
+                    )
                     self._json(200, {"skipped": True})
                     return
                 payload_chars = len(out.get("text", "") or "")

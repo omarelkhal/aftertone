@@ -53,7 +53,7 @@ Installs to `~/aftertone` (or `%USERPROFILE%\aftertone`), downloads models, regi
 |------|--------|
 | **Cursor** | Settings → **Hooks** on · **trust** the workspace |
 | **Claude Code** | `claude` → `/aftertone_on` in each chat where you want speech |
-| **Codex** | `codex` → `uv run --directory ~/aftertone/py python -m aftertone on`, then review/trust `~/.codex/hooks.json` |
+| **Codex** | `codex` → `$aftertone-on` or `/skills` → `aftertone-on`, then review/trust `~/.codex/hooks.json` |
 
 Agents should end substantive replies with `<spoken_summary>…</spoken_summary>` (repo default: **tag only** — no tag, no speech). See [spoken-summary rule](.cursor/rules/spoken-summary.mdc).
 
@@ -65,12 +65,12 @@ Type `/` in Agent chat. **Do not** hand-edit TOML for everyday changes.
 
 ### Per-session on/off
 
-**`/aftertone-on`** and **`/aftertone-off`** (Claude: `/aftertone_on` / `/aftertone_off`) apply to **this chat only**. Run **`/aftertone-on`** in each Composer or Claude session where you want speech; other sessions stay silent until you enable them there too. After **`/aftertone-on`**, send any agent reply so the hook can register that session.
+**`/aftertone-on`** and **`/aftertone-off`** (Claude: `/aftertone_on` / `/aftertone_off`, Codex: `$aftertone-on` / `$aftertone-off`) apply to **this chat only**. Run the on command in each Composer, Claude, or Codex session where you want speech; other sessions stay silent until you enable them there too. After turning it on, send any agent reply so the hook can register that session.
 
 | Cursor | Claude Code | Codex |
 |--------|-------------|-------|
-| `/aftertone-on` `/aftertone-off` `/aftertone-toggle` | `/aftertone_on` `/aftertone_off` `/aftertone_toggle` | `python -m aftertone on` / `off` / `toggle` |
-| `/aftertone-status` | `/aftertone_status` | `python -m aftertone status` |
+| `/aftertone-on` `/aftertone-off` `/aftertone-toggle` | `/aftertone_on` `/aftertone_off` `/aftertone_toggle` | `$aftertone-on` `$aftertone-off` |
+| `/aftertone-status` | `/aftertone_status` | `$aftertone-status` |
 | `/aftertone-lang` `/aftertone-voice` `/aftertone-restart` | `/aftertone_lang` `/aftertone_voice` `/aftertone_restart` | `python -m aftertone set ...` / `restart` |
 | … [docs](https://omarelkhal.github.io/aftertone/docs.html#slash-commands) | … [Claude guide](docs/adapters/claude.md) | … [Codex guide](docs/adapters/codex.md) |
 

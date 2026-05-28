@@ -177,10 +177,14 @@ def test_uninstall_global_removes_codex_guidance_and_commands(
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
 
     codex = fake_home / ".codex"
+    agents_skills = fake_home / ".agents" / "skills"
     commands = codex / "commands"
     prompts = codex / "prompts"
     commands.mkdir(parents=True)
     prompts.mkdir(parents=True)
+    (agents_skills / "aftertone-on").mkdir(parents=True)
+    (agents_skills / "aftertone-off").mkdir(parents=True)
+    (agents_skills / "other-skill").mkdir(parents=True)
     (codex / "AGENTS.md").write_text("Aftertone guidance\n", encoding="utf-8")
     (commands / "aftertone-on.md").write_text("on\n", encoding="utf-8")
     (commands / "aftertone-off.md").write_text("off\n", encoding="utf-8")
@@ -188,6 +192,12 @@ def test_uninstall_global_removes_codex_guidance_and_commands(
     (prompts / "aftertone-on.md").write_text("on\n", encoding="utf-8")
     (prompts / "aftertone-off.md").write_text("off\n", encoding="utf-8")
     (prompts / "other.md").write_text("keep\n", encoding="utf-8")
+    (agents_skills / "aftertone-on" / "SKILL.md").write_text("on\n", encoding="utf-8")
+    (agents_skills / "aftertone-off" / "SKILL.md").write_text("off\n", encoding="utf-8")
+    (agents_skills / "other-skill" / "SKILL.md").write_text(
+        "keep\n",
+        encoding="utf-8",
+    )
 
     uninstall_global()
 
@@ -198,3 +208,6 @@ def test_uninstall_global_removes_codex_guidance_and_commands(
     assert not (prompts / "aftertone-on.md").exists()
     assert not (prompts / "aftertone-off.md").exists()
     assert (prompts / "other.md").exists()
+    assert not (agents_skills / "aftertone-on").exists()
+    assert not (agents_skills / "aftertone-off").exists()
+    assert (agents_skills / "other-skill/SKILL.md").exists()
