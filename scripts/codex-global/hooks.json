@@ -3,7 +3,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "bash __AFTERTONE_CODEX_STOP__",
+        "command": "__AFTERTONE_CODEX_STOP__",
         "timeout_ms": 10000
       }
     ]

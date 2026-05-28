@@ -161,7 +161,7 @@ def test_install_global_writes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
                     "Stop": [
                         {
                             "type": "command",
-                            "command": "bash __AFTERTONE_CODEX_STOP__",
+                            "command": "__AFTERTONE_CODEX_STOP__",
                             "timeout_ms": 10000,
                         }
                     ],
@@ -174,10 +174,10 @@ def test_install_global_writes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
     install_global_codex(install_dir=install)
 
     hooks = json.loads((fake_home / ".codex/hooks.json").read_text())
-    assert any(
-        "aftertone-codex-speak-on-stop.sh" in (h.get("command") or "")
-        for h in hooks["hooks"]["Stop"]
-    )
+    command = hooks["hooks"]["Stop"][0]["command"]
+    assert command.startswith("bash ")
+    assert "bash bash" not in command
+    assert "aftertone-codex-speak-on-stop.sh" in command
     assert (fake_home / ".cursor/hooks/aftertone-codex-speak-on-stop.sh").is_file()
 
 
