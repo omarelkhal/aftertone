@@ -48,6 +48,7 @@
         <a href="#free-to-use">Free to use</a>
         <a href="#slash-commands">Slash commands</a>
         <a href="#cursor">Cursor setup</a>
+        <a href="#claude">Claude setup</a>
         <a href="#codex">Codex setup</a>
         <a href="#cli">Aftertone CLI</a>
         <a href="#daemon">Daemon commands</a>
@@ -255,6 +256,27 @@ uv run --directory py python -m aftertone repair</code></pre>
       <div class="callout callout-tip">
         <strong>Verify Cursor called the hook</strong>
         After one agent reply: <code>uv run --directory py python -m aftertone doctor</code>, <code>bash py/diagnose_speak_hooks.sh</code>, or inspect <code>.cursor/hooks/state/hook_payload_trace.jsonl</code> for <code>afterAgentResponse</code> with <code>inline_after_response_ok: true</code>.
+      </div>
+
+      <h2 id="claude">Claude setup</h2>
+      <p>Claude Code uses global <strong>Stop</strong> hooks in <code>~/.claude/settings.json</code>, slash commands in <code>~/.claude/commands/</code>, and the shared local daemon. After global install, run <code>claude</code>, then enable speech for that chat with <code>/aftertone_on</code>.</p>
+      <div class="cards" style="margin-bottom: 1.25rem;">
+        <div class="card">
+          <h3>Per-chat activation</h3>
+          <p><code>/aftertone_on</code> enables this Claude chat only. Use <code>/aftertone_off</code> to disable the current chat without changing other sessions.</p>
+        </div>
+        <div class="card">
+          <h3>Global hooks</h3>
+          <p>Install registers <code>Stop</code> and <code>SubagentStop</code> hooks once. The hooks stay silent until the session is enabled.</p>
+        </div>
+        <div class="card">
+          <h3>Spoken rule</h3>
+          <p><code>~/.claude/rules/spoken-summary.md</code> tells Claude to end substantive replies with one <code>&lt;spoken_summary&gt;</code> block.</p>
+        </div>
+      </div>
+      <div class="callout callout-tip">
+        <strong>Verify Claude locally</strong>
+        Run <code>/aftertone_status</code> inside Claude Code, or follow the full <a href="https://github.com/omarelkhal/aftertone/blob/main/docs/adapters/claude.md">Claude adapter guide</a>.
       </div>
 
       <h2 id="codex">Codex setup</h2>
