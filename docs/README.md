@@ -4,8 +4,9 @@ Static site for [aftertone on GitHub Pages](https://omarelkhal.github.io/afterto
 
 - `index.html` — landing (includes `demo.mp4` walkthrough)
 - `demo.mp4` — short + long task demo (~6 MB; served at `/demo.mp4` on Pages)
-- `docs.html` — install, slash commands (Cursor + Claude), CLI, troubleshooting
+- `docs.html` — install, slash commands (Cursor + Claude + Codex), CLI, troubleshooting
 - `adapters/claude.md` — Claude Code adapter (linked from docs; source on GitHub)
+- `adapters/codex.md` — Codex adapter (global Stop hook + smoke test)
 
 | File | URL |
 |------|-----|
