@@ -92,6 +92,9 @@ def uninstall_global(*, dry_run: bool = False) -> None:
     claude_rule = user_claude / "rules" / "spoken-summary.md"
     user_codex = Path.home() / ".codex"
     codex_hooks_json = user_codex / "hooks.json"
+    codex_rule = user_codex / "AGENTS.md"
+    codex_user_commands = user_codex / "commands"
+    codex_command_glob = "aftertone-*.md"
 
     hook_files = [
         user_hooks / "aftertone-install-dir",
@@ -135,6 +138,11 @@ def uninstall_global(*, dry_run: bool = False) -> None:
             print(f"would strip Aftertone from {claude_settings}")
         if codex_hooks_json.is_file():
             print(f"would strip Aftertone from {codex_hooks_json}")
+        if codex_rule.is_file():
+            print(f"would remove {codex_rule}")
+        if codex_user_commands.is_dir():
+            for p in sorted(codex_user_commands.glob(codex_command_glob)):
+                print(f"would remove {p}")
         if claude_skill.is_file():
             print(f"would remove {claude_skill}")
         if claude_rule.is_file():
@@ -181,6 +189,16 @@ def uninstall_global(*, dry_run: bool = False) -> None:
             if p.is_file():
                 p.unlink()
                 print(f"removed: {p}")
+
+    if codex_user_commands.is_dir():
+        for p in sorted(codex_user_commands.glob(codex_command_glob)):
+            if p.is_file():
+                p.unlink()
+                print(f"removed: {p}")
+
+    if codex_rule.is_file():
+        codex_rule.unlink()
+        print(f"removed: {codex_rule}")
 
     removed_claude = 0
     if claude_settings.is_file():
