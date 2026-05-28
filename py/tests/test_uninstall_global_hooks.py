@@ -9,7 +9,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from install_global_hooks import install_global
-from uninstall_global_hooks import _remove_aftertone_hook_entries, uninstall_global
+from uninstall_global_hooks import (
+    _remove_aftertone_hook_entries,
+    _remove_codex_hook_entries,
+    uninstall_global,
+)
 
 
 def test_remove_aftertone_hook_entries_keeps_other_hooks() -> None:
@@ -59,6 +63,28 @@ def test_remove_aftertone_hook_entries_drops_empty_event() -> None:
     assert "afterAgentResponse" not in updated["hooks"]
 
 
+def test_remove_codex_hook_entries_keeps_other_hooks() -> None:
+    existing = {
+        "hooks": {
+            "Stop": [
+                {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+                {
+                    "type": "command",
+                    "command": "bash /tmp/aftertone-codex-speak-on-stop.sh",
+                    "timeout_ms": 10000,
+                },
+            ],
+        },
+    }
+
+    updated, removed = _remove_codex_hook_entries(existing)
+
+    assert removed == 1
+    assert updated["hooks"]["Stop"] == [
+        {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+    ]
+
+
 def test_uninstall_global_removes_files(tmp_path: Path, monkeypatch) -> None:
     fake_home = tmp_path / "home"
     fake_home.mkdir()
@@ -100,3 +126,43 @@ def test_uninstall_global_removes_files(tmp_path: Path, monkeypatch) -> None:
     assert not (fake_home / ".cursor/commands/aftertone-on.md").exists()
     assert not (fake_home / ".cursor/rules/spoken-summary.mdc").exists()
     assert not (fake_home / ".cursor/hooks.json").exists()
+
+
+def test_uninstall_global_removes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
+
+    codex = fake_home / ".codex"
+    codex.mkdir()
+    (codex / "hooks.json").write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [
+                        {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+                        {
+                            "type": "command",
+                            "command": "bash /tmp/aftertone-codex-speak-on-stop.sh",
+                            "timeout_ms": 10000,
+                        },
+                    ],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    cursor_hooks = fake_home / ".cursor" / "hooks"
+    cursor_hooks.mkdir(parents=True)
+    (cursor_hooks / "aftertone-codex-speak-on-stop.sh").write_text("#!/bin/bash\n")
+    (cursor_hooks / "aftertone-codex-speak-on-stop.cmd").write_text("@echo off\n")
+
+    uninstall_global()
+
+    hooks = json.loads((codex / "hooks.json").read_text())
+    assert hooks["hooks"]["Stop"] == [
+        {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+    ]
+    assert not (cursor_hooks / "aftertone-codex-speak-on-stop.sh").exists()
+    assert not (cursor_hooks / "aftertone-codex-speak-on-stop.cmd").exists()
