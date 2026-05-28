@@ -234,6 +234,198 @@ def test_prepare_accepts_claude_stop_event():
     assert "Claude Stop" in out["text"]
 
 
+def test_prepare_accepts_codex_stop_event():
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-1",
+        "turn_id": "turn-1",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "cwd": "/tmp/aftertone",
+        "last_assistant_message": (
+            "Implemented the Codex adapter tracer bullet.\n\n"
+            "<spoken_summary>\n"
+            "The Codex Stop hook path is wired for speech!!\n"
+            "</spoken_summary>"
+        ),
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "total_step": 8,
+        "speed": 1.15,
+        "lang": "en",
+        "mode": "queue",
+        "expression_mode": "off",
+    }
+
+    out = prepare_payload(hook, cfg)
+
+    assert out is not None
+    assert out["text"] == "The Codex Stop hook path is wired for speech!!"
+    assert out["totalStep"] == 8
+    assert out["speed"] == 1.15
+    assert out["lang"] == "en"
+    assert out["mode"] == "queue"
+
+
+def test_prepare_codex_stop_without_tag_is_silent_in_tag_only_mode():
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-2",
+        "turn_id": "turn-2",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "No spoken tag in this response.",
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    assert prepare_payload(hook, cfg) is None
+
+
+def test_prepare_skips_codex_user_prompt_submit_event():
+    hook = {
+        "hook_event_name": "UserPromptSubmit",
+        "session_id": "codex-session-3",
+        "turn_id": "turn-3",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "prompt": "Please do the work.",
+        "last_assistant_message": "<spoken_summary>Should not speak!!</spoken_summary>",
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    assert prepare_payload(hook, cfg) is None
+
+
+def test_hook_adapter_distinguishes_codex_stop_from_claude_stop():
+    from aftertone.sessions import hook_adapter
+
+    codex_hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session",
+        "turn_id": "turn-1",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "<spoken_summary>Codex spoke!!</spoken_summary>",
+    }
+    claude_hook = {
+        "hook_event_name": "Stop",
+        "session_id": "claude-session",
+        "transcript_path": "/tmp/.claude/projects/demo/transcript.jsonl",
+        "last_assistant_message": "<spoken_summary>Claude spoke!!</spoken_summary>",
+    }
+
+    assert hook_adapter(codex_hook) == "codex"
+    assert hook_adapter(claude_hook) == "claude"
+
+
+def test_empty_sessions_includes_codex_bucket(tmp_path):
+    from aftertone.sessions import load_sessions
+
+    assert load_sessions(tmp_path) == {"cursor": [], "claude": [], "codex": []}
+
+
+def test_codex_session_allowlist_blocks_and_registers_pending_on(tmp_path):
+    from aftertone.sessions import cmd_session_on, load_sessions, save_sessions
+
+    repo = tmp_path / "repo"
+    hooks_dir = repo / ".cursor" / "hooks"
+    hooks_dir.mkdir(parents=True)
+    (hooks_dir / "speak_summary.toml").write_text(
+        'enabled = true\nsession_mode = "allowlist"\n',
+        encoding="utf-8",
+    )
+    save_sessions(repo, {"cursor": [], "claude": [], "codex": ["allowed-codex"]})
+
+    cfg = {
+        "enabled": True,
+        "session_mode": "allowlist",
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "blocked-codex",
+        "turn_id": "turn-blocked",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "<spoken_summary>Blocked Codex!!</spoken_summary>",
+    }
+
+    assert prepare_payload(hook, cfg, repo) is None
+
+    assert cmd_session_on(repo) == 0
+    hook["session_id"] = "new-codex"
+    hook["turn_id"] = "turn-new"
+    hook["last_assistant_message"] = "<spoken_summary>Registered Codex!!</spoken_summary>"
+    out = prepare_payload(hook, cfg, repo)
+
+    assert out is not None
+    assert "Registered Codex" in out["text"]
+    assert load_sessions(repo)["codex"] == ["allowed-codex", "new-codex"]
+
+
+def test_claude_stop_still_registers_claude_bucket(tmp_path):
+    from aftertone.sessions import cmd_session_on, load_sessions
+
+    repo = tmp_path / "repo"
+    hooks_dir = repo / ".cursor" / "hooks"
+    hooks_dir.mkdir(parents=True)
+    (hooks_dir / "speak_summary.toml").write_text(
+        'enabled = true\nsession_mode = "allowlist"\n',
+        encoding="utf-8",
+    )
+    cfg = {
+        "enabled": True,
+        "session_mode": "allowlist",
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    assert cmd_session_on(repo) == 0
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "claude-session-new",
+        "transcript_path": "/tmp/.claude/projects/demo/transcript.jsonl",
+        "last_assistant_message": "<spoken_summary>Registered Claude!!</spoken_summary>",
+    }
+
+    out = prepare_payload(hook, cfg, repo)
+
+    assert out is not None
+    assert load_sessions(repo)["claude"] == ["claude-session-new"]
+    assert load_sessions(repo)["codex"] == []
+
+
 def test_wait_spoken_job_reads_jsonl(tmp_path):
     from aftertone.cli import _find_spoken_job, _wait_spoken_job
 

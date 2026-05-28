@@ -12,7 +12,7 @@ from typing import Any, Literal
 from aftertone.paths import config_path, state_dir
 
 SessionMode = Literal["all", "allowlist", "denylist"]
-Adapter = Literal["cursor", "claude"]
+Adapter = Literal["cursor", "claude", "codex"]
 
 _SESSIONS_NAME = "enabled_sessions.json"
 _PENDING_ON = "pending_session_on.json"
@@ -37,11 +37,22 @@ def session_mode(cfg: dict) -> SessionMode:
     return "all"
 
 
+def _looks_like_codex_hook(hook: dict) -> bool:
+    if any(k in hook for k in ("turn_id", "permission_mode", "model")):
+        return True
+    cwd = hook.get("cwd")
+    if isinstance(cwd, str) and "/.codex/" in cwd:
+        return True
+    return False
+
+
 def hook_adapter(hook: dict) -> Adapter:
     event = str(hook.get("hook_event_name") or hook.get("hookEventName") or "").strip()
     if event == "afterAgentResponse":
         return "cursor"
     if event in ("Stop", "SubagentStop"):
+        if _looks_like_codex_hook(hook):
+            return "codex"
         return "claude"
     tp = hook.get("transcript_path")
     if isinstance(tp, str) and ("/.claude/" in tp or tp.startswith("~/.claude")):
@@ -74,7 +85,7 @@ def _pending_path(root: Path, action: str) -> Path:
 
 
 def _empty_sessions() -> dict[str, list[str]]:
-    return {"cursor": [], "claude": []}
+    return {"cursor": [], "claude": [], "codex": []}
 
 
 def load_sessions(root: Path) -> dict[str, list[str]]:
@@ -87,7 +98,7 @@ def load_sessions(root: Path) -> dict[str, list[str]]:
         return _empty_sessions()
     out = _empty_sessions()
     if isinstance(data, dict):
-        for adapter in ("cursor", "claude"):
+        for adapter in ("cursor", "claude", "codex"):
             raw = data.get(adapter)
             if isinstance(raw, list):
                 out[adapter] = [str(x).strip() for x in raw if str(x).strip()][
@@ -100,7 +111,7 @@ def save_sessions(root: Path, data: dict[str, list[str]]) -> None:
     path = _sessions_path(root)
     path.parent.mkdir(parents=True, exist_ok=True)
     normalized = _empty_sessions()
-    for adapter in ("cursor", "claude"):
+    for adapter in ("cursor", "claude", "codex"):
         seen: set[str] = set()
         bucket: list[str] = []
         for sid in data.get(adapter, []):
@@ -334,7 +345,7 @@ def cmd_session_off(root: Path, session_id: str | None = None) -> int:
     """Disable spoken TTS for this chat only (default /aftertone-off behavior)."""
     if session_id:
         removed_any = False
-        for adapter in ("cursor", "claude"):
+        for adapter in ("cursor", "claude", "codex"):
             if _remove_session(root, adapter, session_id):
                 removed_any = True
         print(
