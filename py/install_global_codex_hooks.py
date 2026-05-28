@@ -166,6 +166,13 @@ def install_global_codex(*, install_dir: Path, dry_run: bool = False) -> None:
         for cmd in sorted(commands_src.glob("aftertone-*.md")):
             shutil.copy2(cmd, commands_dest / cmd.name)
 
+    prompts_src = template_dir / "prompts"
+    if prompts_src.is_dir():
+        prompts_dest = user_codex / "prompts"
+        prompts_dest.mkdir(parents=True, exist_ok=True)
+        for prompt in sorted(prompts_src.glob("aftertone-*.md")):
+            shutil.copy2(prompt, prompts_dest / prompt.name)
+
     print(f"Global Codex hooks: {hooks_json}")
     print(f"Install root: {install_dir}")
 

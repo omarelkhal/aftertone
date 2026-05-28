@@ -127,6 +127,74 @@ def test_resolve_raw_text_prefers_last_assistant_message():
     assert "last assistant message" in raw
 
 
+def test_resolve_raw_text_reads_codex_transcript_message_shape(tmp_path: Path):
+    from aftertone.extract import resolve_raw_text
+
+    transcript = tmp_path / "codex.jsonl"
+    transcript.write_text(
+        "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": "Old assistant response.",
+                                }
+                            ],
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": (
+                                        "Done.\n\n"
+                                        "<spoken_summary>"
+                                        "Codex transcript spoke!!"
+                                        "</spoken_summary>"
+                                    ),
+                                }
+                            ],
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "event_msg",
+                        "payload": {
+                            "type": "agent_message",
+                            "message": "Later commentary without a spoken tag.",
+                        },
+                    }
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-jsonl",
+        "transcript_path": str(transcript),
+    }
+
+    raw = resolve_raw_text(hook, "Stop")
+
+    assert "Codex transcript spoke" in raw
+    assert "Later commentary" not in raw
+
+
 def test_session_allowlist_blocks_unlisted(tmp_path):
     from aftertone.sessions import save_sessions
 

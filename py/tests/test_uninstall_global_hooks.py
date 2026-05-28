@@ -178,11 +178,16 @@ def test_uninstall_global_removes_codex_guidance_and_commands(
 
     codex = fake_home / ".codex"
     commands = codex / "commands"
+    prompts = codex / "prompts"
     commands.mkdir(parents=True)
+    prompts.mkdir(parents=True)
     (codex / "AGENTS.md").write_text("Aftertone guidance\n", encoding="utf-8")
     (commands / "aftertone-on.md").write_text("on\n", encoding="utf-8")
     (commands / "aftertone-off.md").write_text("off\n", encoding="utf-8")
     (commands / "other.md").write_text("keep\n", encoding="utf-8")
+    (prompts / "aftertone-on.md").write_text("on\n", encoding="utf-8")
+    (prompts / "aftertone-off.md").write_text("off\n", encoding="utf-8")
+    (prompts / "other.md").write_text("keep\n", encoding="utf-8")
 
     uninstall_global()
 
@@ -190,3 +195,6 @@ def test_uninstall_global_removes_codex_guidance_and_commands(
     assert not (commands / "aftertone-on.md").exists()
     assert not (commands / "aftertone-off.md").exists()
     assert (commands / "other.md").exists()
+    assert not (prompts / "aftertone-on.md").exists()
+    assert not (prompts / "aftertone-off.md").exists()
+    assert (prompts / "other.md").exists()
