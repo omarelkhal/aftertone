@@ -273,6 +273,51 @@ def test_prepare_accepts_codex_stop_event():
     assert out["mode"] == "queue"
 
 
+def test_prepare_codex_stop_without_tag_is_silent_in_tag_only_mode():
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-2",
+        "turn_id": "turn-2",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "No spoken tag in this response.",
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    assert prepare_payload(hook, cfg) is None
+
+
+def test_prepare_skips_codex_user_prompt_submit_event():
+    hook = {
+        "hook_event_name": "UserPromptSubmit",
+        "session_id": "codex-session-3",
+        "turn_id": "turn-3",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "prompt": "Please do the work.",
+        "last_assistant_message": "<spoken_summary>Should not speak!!</spoken_summary>",
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    assert prepare_payload(hook, cfg) is None
+
+
 def test_hook_adapter_distinguishes_codex_stop_from_claude_stop():
     from aftertone.sessions import hook_adapter
 
