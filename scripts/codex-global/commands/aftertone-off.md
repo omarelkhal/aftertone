@@ -2,6 +2,8 @@
 
 Disable Aftertone spoken TTS for this Codex session only.
 
+Codex does not document arbitrary custom slash commands as the primary extension point. Prefer `$aftertone-off`, or open `/skills` and choose `aftertone-off`.
+
 Run exactly one command from the Aftertone install root:
 
 ```bash

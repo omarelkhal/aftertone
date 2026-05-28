@@ -320,6 +320,8 @@ def test_install_global_codex_copies_guidance_and_commands(
     (install / "py" / "speak_summary_prepare.py").write_text("# stub\n")
     tpl = install / "scripts" / "codex-global"
     (tpl / "commands").mkdir(parents=True)
+    (tpl / "skills" / "aftertone-on").mkdir(parents=True)
+    (tpl / "skills" / "aftertone-off").mkdir(parents=True)
     (tpl / "aftertone-codex-speak-on-stop.sh").write_text("#!/bin/bash\n", encoding="utf-8")
     (tpl / "hooks.json").write_text(
         json.dumps(
@@ -340,6 +342,14 @@ def test_install_global_codex_copies_guidance_and_commands(
     (tpl / "AGENTS.md").write_text("Codex guidance <spoken_summary>\n", encoding="utf-8")
     (tpl / "commands" / "aftertone-on.md").write_text("aftertone on\n", encoding="utf-8")
     (tpl / "commands" / "aftertone-off.md").write_text("aftertone off\n", encoding="utf-8")
+    (tpl / "skills" / "aftertone-on" / "SKILL.md").write_text(
+        "aftertone skill on\n",
+        encoding="utf-8",
+    )
+    (tpl / "skills" / "aftertone-off" / "SKILL.md").write_text(
+        "aftertone skill off\n",
+        encoding="utf-8",
+    )
 
     install_global_codex(install_dir=install)
 
@@ -352,3 +362,9 @@ def test_install_global_codex_copies_guidance_and_commands(
     assert (
         fake_home / ".codex/commands/aftertone-off.md"
     ).read_text(encoding="utf-8") == "aftertone off\n"
+    assert (
+        fake_home / ".agents/skills/aftertone-on/SKILL.md"
+    ).read_text(encoding="utf-8") == "aftertone skill on\n"
+    assert (
+        fake_home / ".agents/skills/aftertone-off/SKILL.md"
+    ).read_text(encoding="utf-8") == "aftertone skill off\n"

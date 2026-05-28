@@ -2,6 +2,8 @@
 
 Enable Aftertone spoken TTS for this Codex session only.
 
+Prefer `$aftertone-on`, or open `/skills` and choose `aftertone-on`. This prompt remains a compatibility fallback.
+
 Run exactly one shell command:
 
 ```bash

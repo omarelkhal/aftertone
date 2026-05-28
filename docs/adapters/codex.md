@@ -11,7 +11,8 @@ Codex hook reference: https://developers.openai.com/codex/hooks
 | `~/aftertone` (default) | Runtime from `scripts/install.sh` - ONNX assets, daemon, shared config |
 | `~/.codex/hooks.json` | Codex `Stop` hook that calls Aftertone after each turn |
 | `~/.codex/AGENTS.md` | Codex-facing spoken-summary guidance |
-| `~/.codex/commands/aftertone-*.md` | Codex command docs for `on`, `off`, and `status` |
+| `~/.agents/skills/aftertone-*` | Codex skills for `$aftertone-on`, `$aftertone-off`, and `$aftertone-status` |
+| `~/.codex/prompts/aftertone-*.md` | Compatibility prompt docs for `on`, `off`, and `status` |
 | `~/.cursor/hooks/aftertone-codex-speak-on-stop.*` | Wrapper script copied by install |
 | `~/aftertone/.cursor/hooks/speak_summary.toml` | Shared Aftertone config across adapters |
 
@@ -47,21 +48,23 @@ codex
 
 Enable speech for the current Codex session:
 
-```bash
-uv run --directory ~/aftertone/py python -m aftertone on
-```
+Type `$aftertone-on`, or open `/skills` and choose `aftertone-on`.
 
-Then send one Codex reply that includes a short `<spoken_summary>` tag. The next `Stop` hook registers this Codex session id on the allowlist. Other sessions stay silent until enabled there too.
+The skill runs `python -m aftertone on`, then replies with a short `<spoken_summary>` tag. The next `Stop` hook registers this Codex session id on the allowlist. Other sessions stay silent until enabled there too.
 
 Turn off this session:
 
-```bash
-uv run --directory ~/aftertone/py python -m aftertone off
-```
+Type `$aftertone-off`, or open `/skills` and choose `aftertone-off`.
 
 Check status:
 
+Type `$aftertone-status`, or open `/skills` and choose `aftertone-status`.
+
+Terminal fallback without a Codex turn:
+
 ```bash
+uv run --directory ~/aftertone/py python -m aftertone on
+uv run --directory ~/aftertone/py python -m aftertone off
 uv run --directory ~/aftertone/py python -m aftertone status
 ```
 
@@ -116,9 +119,7 @@ Expected output:
 
 2. Enable this session:
 
-   ```bash
-   uv run --directory ~/aftertone/py python -m aftertone on
-   ```
+   Type `$aftertone-on`, or open `/skills` and choose `aftertone-on`.
 
 3. In Codex, ask for a tiny response that ends with:
 
@@ -144,4 +145,4 @@ Expected output:
 
 ## Status
 
-Codex global `Stop` hooks, guidance, and command docs ship with global install. MCP control snippets remain optional follow-up work.
+Codex global `Stop` hooks, guidance, skills, and compatibility prompt docs ship with global install. MCP control snippets remain optional follow-up work.

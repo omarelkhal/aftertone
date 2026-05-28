@@ -173,6 +173,18 @@ def install_global_codex(*, install_dir: Path, dry_run: bool = False) -> None:
         for prompt in sorted(prompts_src.glob("aftertone-*.md")):
             shutil.copy2(prompt, prompts_dest / prompt.name)
 
+    skills_src = template_dir / "skills"
+    if skills_src.is_dir():
+        skills_dest = Path.home() / ".agents" / "skills"
+        skills_dest.mkdir(parents=True, exist_ok=True)
+        for skill in sorted(skills_src.glob("aftertone-*")):
+            if not skill.is_dir():
+                continue
+            dest = skills_dest / skill.name
+            if dest.exists():
+                shutil.rmtree(dest)
+            shutil.copytree(skill, dest)
+
     print(f"Global Codex hooks: {hooks_json}")
     print(f"Install root: {install_dir}")
 
