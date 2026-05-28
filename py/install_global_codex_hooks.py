@@ -121,6 +121,18 @@ def install_global_codex(*, install_dir: Path, dry_run: bool = False) -> None:
         merged = fragment
 
     hooks_json.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
+
+    rule_src = template_dir / "AGENTS.md"
+    if rule_src.is_file():
+        shutil.copy2(rule_src, user_codex / "AGENTS.md")
+
+    commands_src = template_dir / "commands"
+    if commands_src.is_dir():
+        commands_dest = user_codex / "commands"
+        commands_dest.mkdir(parents=True, exist_ok=True)
+        for cmd in sorted(commands_src.glob("aftertone-*.md")):
+            shutil.copy2(cmd, commands_dest / cmd.name)
+
     print(f"Global Codex hooks: {hooks_json}")
     print(f"Install root: {install_dir}")
 
