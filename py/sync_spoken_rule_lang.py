@@ -59,6 +59,16 @@ def _blurb_claude(lang: str) -> str:
     )
 
 
+def _blurb_codex(lang: str) -> str:
+    return (
+        f"> **Locked `lang` for `<spoken_summary>` only:** `{lang}` "
+        "(from `~/aftertone/.cursor/hooks/speak_summary.toml` on global install). "
+        "Write the **inner tag** only in that language — **not** the conversation language. "
+        "After changing `lang`, run `/aftertone-lang` or "
+        "`uv run --directory py python sync_spoken_rule_lang.py` from the Aftertone repo.\n"
+    )
+
+
 def _user_cursor_rule_path() -> Path | None:
     """Global install copies the rule to ~/.cursor/rules; keep it in sync with TOML."""
     marker = Path.home() / ".cursor" / "hooks" / "aftertone-install-dir"
@@ -122,7 +132,27 @@ def sync_rule(repo: Path, *, check_only: bool) -> int:
             shutil.copy2(claude_rule_src, dest)
             print(f"updated {dest}")
 
-    if not changed and not claude_changed:
+    codex_rule_src = repo / "scripts" / "codex-global" / "AGENTS.md"
+    codex_changed = False
+    if codex_rule_src.is_file():
+        codex_body = codex_rule_src.read_text(encoding="utf-8")
+        if MARK_START in codex_body and MARK_END in codex_body:
+            codex_new, codex_changed = _replace_lang_block(
+                codex_body, _blurb_codex(lang)
+            )
+            if codex_changed and not check_only:
+                codex_rule_src.write_text(codex_new, encoding="utf-8")
+                print(f"updated {codex_rule_src} (lang={lang})")
+        elif not check_only:
+            print(f"warn: skip {codex_rule_src} (no lang markers)", file=sys.stderr)
+
+    if codex_rule_src.is_file() and not check_only:
+        dest = Path.home() / ".codex" / "AGENTS.md"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(codex_rule_src, dest)
+        print(f"updated {dest}")
+
+    if not changed and not claude_changed and not codex_changed:
         if check_only:
             print("ok: rules already match TOML")
         else:
