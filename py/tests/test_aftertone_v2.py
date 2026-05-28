@@ -390,6 +390,46 @@ def test_codex_session_allowlist_blocks_and_registers_pending_on(tmp_path):
     assert load_sessions(repo)["codex"] == ["allowed-codex", "new-codex"]
 
 
+def test_codex_aftertone_on_registers_session_id_with_next_stop_hook(tmp_path):
+    from argparse import Namespace
+    from aftertone.cli import cmd_on
+    from aftertone.sessions import load_sessions
+
+    repo = tmp_path / "repo"
+    hooks_dir = repo / ".cursor" / "hooks"
+    hooks_dir.mkdir(parents=True)
+    (hooks_dir / "speak_summary.toml").write_text("enabled = false\n", encoding="utf-8")
+    py_dir = repo / "py"
+    py_dir.mkdir(parents=True)
+    (py_dir / "speak_summary_prepare.py").write_text("# test\n", encoding="utf-8")
+
+    assert cmd_on(Namespace(repo_root=repo)) == 0
+
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-smoke",
+        "turn_id": "turn-smoke",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "<spoken_summary>Codex registered this session!!</spoken_summary>",
+    }
+    cfg = {
+        "enabled": True,
+        "session_mode": "allowlist",
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "expression_mode": "off",
+    }
+
+    out = prepare_payload(hook, cfg, repo)
+
+    assert out is not None
+    assert load_sessions(repo)["codex"] == ["codex-session-smoke"]
+
+
 def test_claude_stop_still_registers_claude_bucket(tmp_path):
     from aftertone.sessions import cmd_session_on, load_sessions
 

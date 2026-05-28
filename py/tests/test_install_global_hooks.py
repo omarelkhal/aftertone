@@ -265,3 +265,52 @@ def test_install_global_codex_windows_cmd(tmp_path: Path, monkeypatch) -> None:
     assert "cmd /c" in cmd
     assert "aftertone-codex-speak-on-stop.cmd" in cmd
     assert (fake_home / ".cursor/hooks/aftertone-codex-speak-on-stop.cmd").is_file()
+
+
+def test_install_global_codex_copies_guidance_and_commands(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from install_global_codex_hooks import install_global_codex
+
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
+
+    install = tmp_path / "aftertone"
+    (install / "py").mkdir(parents=True)
+    (install / "py" / "speak_summary_prepare.py").write_text("# stub\n")
+    tpl = install / "scripts" / "codex-global"
+    (tpl / "commands").mkdir(parents=True)
+    (tpl / "aftertone-codex-speak-on-stop.sh").write_text("#!/bin/bash\n", encoding="utf-8")
+    (tpl / "hooks.json").write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [
+                        {
+                            "type": "command",
+                            "command": "bash __AFTERTONE_CODEX_STOP__",
+                            "timeout_ms": 10000,
+                        }
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tpl / "AGENTS.md").write_text("Codex guidance <spoken_summary>\n", encoding="utf-8")
+    (tpl / "commands" / "aftertone-on.md").write_text("aftertone on\n", encoding="utf-8")
+    (tpl / "commands" / "aftertone-off.md").write_text("aftertone off\n", encoding="utf-8")
+
+    install_global_codex(install_dir=install)
+
+    assert (
+        fake_home / ".codex/AGENTS.md"
+    ).read_text(encoding="utf-8") == "Codex guidance <spoken_summary>\n"
+    assert (
+        fake_home / ".codex/commands/aftertone-on.md"
+    ).read_text(encoding="utf-8") == "aftertone on\n"
+    assert (
+        fake_home / ".codex/commands/aftertone-off.md"
+    ).read_text(encoding="utf-8") == "aftertone off\n"

@@ -166,3 +166,27 @@ def test_uninstall_global_removes_codex_hooks(tmp_path: Path, monkeypatch) -> No
     ]
     assert not (cursor_hooks / "aftertone-codex-speak-on-stop.sh").exists()
     assert not (cursor_hooks / "aftertone-codex-speak-on-stop.cmd").exists()
+
+
+def test_uninstall_global_removes_codex_guidance_and_commands(
+    tmp_path: Path, monkeypatch
+) -> None:
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
+
+    codex = fake_home / ".codex"
+    commands = codex / "commands"
+    commands.mkdir(parents=True)
+    (codex / "AGENTS.md").write_text("Aftertone guidance\n", encoding="utf-8")
+    (commands / "aftertone-on.md").write_text("on\n", encoding="utf-8")
+    (commands / "aftertone-off.md").write_text("off\n", encoding="utf-8")
+    (commands / "other.md").write_text("keep\n", encoding="utf-8")
+
+    uninstall_global()
+
+    assert not (codex / "AGENTS.md").exists()
+    assert not (commands / "aftertone-on.md").exists()
+    assert not (commands / "aftertone-off.md").exists()
+    assert (commands / "other.md").exists()
