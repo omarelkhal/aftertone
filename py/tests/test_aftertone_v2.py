@@ -234,6 +234,34 @@ def test_prepare_accepts_claude_stop_event():
     assert "Claude Stop" in out["text"]
 
 
+def test_hook_adapter_distinguishes_codex_stop_from_claude_stop():
+    from aftertone.sessions import hook_adapter
+
+    codex_hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session",
+        "turn_id": "turn-1",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "last_assistant_message": "<spoken_summary>Codex spoke!!</spoken_summary>",
+    }
+    claude_hook = {
+        "hook_event_name": "Stop",
+        "session_id": "claude-session",
+        "transcript_path": "/tmp/.claude/projects/demo/transcript.jsonl",
+        "last_assistant_message": "<spoken_summary>Claude spoke!!</spoken_summary>",
+    }
+
+    assert hook_adapter(codex_hook) == "codex"
+    assert hook_adapter(claude_hook) == "claude"
+
+
+def test_empty_sessions_includes_codex_bucket(tmp_path):
+    from aftertone.sessions import load_sessions
+
+    assert load_sessions(tmp_path) == {"cursor": [], "claude": [], "codex": []}
+
+
 def test_wait_spoken_job_reads_jsonl(tmp_path):
     from aftertone.cli import _find_spoken_job, _wait_spoken_job
 
