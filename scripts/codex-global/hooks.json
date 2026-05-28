@@ -2,9 +2,13 @@
   "hooks": {
     "Stop": [
       {
-        "type": "command",
-        "command": "__AFTERTONE_CODEX_STOP__",
-        "timeout_ms": 10000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__AFTERTONE_CODEX_STOP__",
+            "timeout": 10
+          }
+        ]
       }
     ]
   }
