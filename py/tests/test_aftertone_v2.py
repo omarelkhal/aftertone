@@ -234,6 +234,45 @@ def test_prepare_accepts_claude_stop_event():
     assert "Claude Stop" in out["text"]
 
 
+def test_prepare_accepts_codex_stop_event():
+    hook = {
+        "hook_event_name": "Stop",
+        "session_id": "codex-session-1",
+        "turn_id": "turn-1",
+        "model": "gpt-5.1-codex",
+        "permission_mode": "default",
+        "cwd": "/tmp/aftertone",
+        "last_assistant_message": (
+            "Implemented the Codex adapter tracer bullet.\n\n"
+            "<spoken_summary>\n"
+            "The Codex Stop hook path is wired for speech!!\n"
+            "</spoken_summary>"
+        ),
+    }
+    cfg = {
+        "enabled": True,
+        "summary_mode": "tag_only",
+        "only_speak_spoken_summary": True,
+        "min_chars": 5,
+        "max_chars": 2000,
+        "spoken_summary_max_chars": 360,
+        "total_step": 8,
+        "speed": 1.15,
+        "lang": "en",
+        "mode": "queue",
+        "expression_mode": "off",
+    }
+
+    out = prepare_payload(hook, cfg)
+
+    assert out is not None
+    assert out["text"] == "The Codex Stop hook path is wired for speech!!"
+    assert out["totalStep"] == 8
+    assert out["speed"] == 1.15
+    assert out["lang"] == "en"
+    assert out["mode"] == "queue"
+
+
 def test_hook_adapter_distinguishes_codex_stop_from_claude_stop():
     from aftertone.sessions import hook_adapter
 
