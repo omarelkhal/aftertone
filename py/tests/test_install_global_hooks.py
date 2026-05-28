@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from install_global_hooks import _merge_hooks, install_global
+from install_global_codex_hooks import _merge_codex_hooks
 
 
 def test_merge_hooks_appends_without_duplicates() -> None:
@@ -32,6 +33,66 @@ def test_merge_hooks_appends_without_duplicates() -> None:
         "bash ./hooks/other.sh",
         "bash ./hooks/aftertone-speak_summary.sh",
     ]
+
+
+def test_merge_codex_hooks_appends_without_duplicates() -> None:
+    existing = {
+        "hooks": {
+            "Stop": [
+                {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+            ],
+        },
+    }
+    fragment = {
+        "hooks": {
+            "Stop": [
+                {
+                    "type": "command",
+                    "command": "bash /tmp/aftertone-codex-speak-on-stop.sh",
+                    "timeout_ms": 10000,
+                },
+            ],
+        },
+    }
+
+    merged = _merge_codex_hooks(existing, fragment)
+
+    cmds = [h["command"] for h in merged["hooks"]["Stop"]]
+    assert cmds == [
+        "bash /tmp/other.sh",
+        "bash /tmp/aftertone-codex-speak-on-stop.sh",
+    ]
+
+
+def test_merge_codex_hooks_replaces_stale_aftertone_entries() -> None:
+    existing = {
+        "hooks": {
+            "Stop": [
+                {
+                    "type": "command",
+                    "command": "bash /old/aftertone-codex-speak-on-stop.sh",
+                    "timeout_ms": 10000,
+                },
+                {"type": "command", "command": "bash /tmp/other.sh", "timeout_ms": 1000},
+            ],
+        },
+    }
+    fragment = {
+        "hooks": {
+            "Stop": [
+                {
+                    "type": "command",
+                    "command": "bash /new/aftertone-codex-speak-on-stop.sh",
+                    "timeout_ms": 10000,
+                },
+            ],
+        },
+    }
+
+    merged = _merge_codex_hooks(existing, fragment)
+
+    cmds = [h["command"] for h in merged["hooks"]["Stop"]]
+    assert cmds == ["bash /tmp/other.sh", "bash /new/aftertone-codex-speak-on-stop.sh"]
 
 
 def test_install_global_writes_files(tmp_path: Path, monkeypatch) -> None:
