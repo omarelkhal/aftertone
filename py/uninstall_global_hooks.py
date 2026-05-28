@@ -94,6 +94,7 @@ def uninstall_global(*, dry_run: bool = False) -> None:
     codex_hooks_json = user_codex / "hooks.json"
     codex_rule = user_codex / "AGENTS.md"
     codex_user_commands = user_codex / "commands"
+    codex_user_prompts = user_codex / "prompts"
     codex_command_glob = "aftertone-*.md"
 
     hook_files = [
@@ -142,6 +143,9 @@ def uninstall_global(*, dry_run: bool = False) -> None:
             print(f"would remove {codex_rule}")
         if codex_user_commands.is_dir():
             for p in sorted(codex_user_commands.glob(codex_command_glob)):
+                print(f"would remove {p}")
+        if codex_user_prompts.is_dir():
+            for p in sorted(codex_user_prompts.glob(codex_command_glob)):
                 print(f"would remove {p}")
         if claude_skill.is_file():
             print(f"would remove {claude_skill}")
@@ -192,6 +196,12 @@ def uninstall_global(*, dry_run: bool = False) -> None:
 
     if codex_user_commands.is_dir():
         for p in sorted(codex_user_commands.glob(codex_command_glob)):
+            if p.is_file():
+                p.unlink()
+                print(f"removed: {p}")
+
+    if codex_user_prompts.is_dir():
+        for p in sorted(codex_user_prompts.glob(codex_command_glob)):
             if p.is_file():
                 p.unlink()
                 print(f"removed: {p}")

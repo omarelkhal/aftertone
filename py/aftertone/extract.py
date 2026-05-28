@@ -9,8 +9,26 @@ from pathlib import Path
 from aftertone.spoken_tag import parse_spoken_summary
 
 
+def _content_text(parts: object) -> str:
+    if isinstance(parts, str):
+        return parts.strip()
+    if not isinstance(parts, list):
+        return ""
+    texts: list[str] = []
+    for p in parts:
+        if not isinstance(p, dict):
+            continue
+        if p.get("type") not in ("text", "output_text"):
+            continue
+        t = p.get("text")
+        if isinstance(t, str) and t.strip():
+            texts.append(t.strip())
+    return "\n".join(texts)
+
+
 def assistant_text_blocks(lines: list[str]) -> str:
-    last_assistant: dict | None = None
+    last_text = ""
+    last_spoken_text = ""
     for line in lines:
         line = line.strip()
         if not line:
@@ -19,30 +37,32 @@ def assistant_text_blocks(lines: list[str]) -> str:
             obj = json.loads(line)
         except json.JSONDecodeError:
             continue
-        if obj.get("role") != "assistant":
+
+        text = ""
+        if obj.get("role") == "assistant":
+            text = _content_text(obj.get("content"))
+            if not text:
+                msg = obj.get("message")
+                if isinstance(msg, str):
+                    text = msg.strip()
+                elif isinstance(msg, dict):
+                    text = _content_text(msg.get("content"))
+        payload = obj.get("payload")
+        if not text and isinstance(payload, dict):
+            if payload.get("type") == "agent_message":
+                msg = payload.get("message")
+                if isinstance(msg, str):
+                    text = msg.strip()
+            elif payload.get("type") == "message" and payload.get("role") == "assistant":
+                text = _content_text(payload.get("content"))
+
+        if not text:
             continue
-        last_assistant = obj
-    if not last_assistant:
-        return ""
-    if isinstance(last_assistant.get("content"), str):
-        return str(last_assistant["content"]).strip()
-    msg = last_assistant.get("message")
-    if isinstance(msg, str):
-        return msg.strip()
-    if not isinstance(msg, dict):
-        return ""
-    parts = msg.get("content")
-    if isinstance(parts, str):
-        return parts.strip()
-    if not isinstance(parts, list):
-        return ""
-    texts: list[str] = []
-    for p in parts:
-        if isinstance(p, dict) and p.get("type") == "text":
-            t = p.get("text")
-            if isinstance(t, str) and t.strip():
-                texts.append(t.strip())
-    return "\n".join(texts)
+        last_text = text
+        if parse_spoken_summary(text)[0]:
+            last_spoken_text = text
+
+    return last_spoken_text or last_text
 
 
 def hook_inline_text(hook: dict) -> str:

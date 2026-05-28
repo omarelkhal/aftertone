@@ -178,6 +178,8 @@ def test_install_global_writes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
     tpl.mkdir(parents=True)
     (tpl / "aftertone-codex-speak-on-stop.sh").write_text("#!/bin/bash\n", encoding="utf-8")
     (tpl / "aftertone-codex-speak-on-stop.cmd").write_text("@echo off\n", encoding="utf-8")
+    (tpl / "prompts").mkdir()
+    (tpl / "prompts" / "aftertone-on.md").write_text("# on prompt\n", encoding="utf-8")
     (tpl / "hooks.json").write_text(
         json.dumps(
             {
@@ -210,6 +212,7 @@ def test_install_global_writes_codex_hooks(tmp_path: Path, monkeypatch) -> None:
     assert "aftertone-codex-speak-on-stop.sh" in command
     assert stop_group["hooks"][0]["timeout"] == 10
     assert (fake_home / ".cursor/hooks/aftertone-codex-speak-on-stop.sh").is_file()
+    assert (fake_home / ".codex/prompts/aftertone-on.md").read_text() == "# on prompt\n"
 
 
 def test_install_global_windows_cmd(tmp_path: Path, monkeypatch) -> None:
